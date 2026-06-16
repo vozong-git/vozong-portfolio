@@ -117,6 +117,81 @@
     e.preventDefault(); load(a.dataset.cat || '');
   });
 
+  // ── project detail (open on card click, return via Back) ──
+  area.addEventListener('click', (e) => {
+    const card = e.target.closest('article[data-id]');
+    if (card) { openDetail(card.dataset.id); return; }
+    if (e.target.closest('#backBtn')) { load(activeCat); return; }
+    const thumb = e.target.closest('button[data-img]');
+    if (thumb) { const m = document.getElementById('detailMain'); if (m) m.src = thumb.dataset.img; }
+  });
+
+  async function openDetail(id) {
+    area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>`;
+    try {
+      const { project: p } = await SN.api('GET', `/api/projects/${id}`);
+      area.innerHTML = detailView(p);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-error">${SN.escape(e.message)}</p>`;
+    }
+  }
+
+  function detailView(p) {
+    const images = (p.assets || []).filter(a => a.kind === 'image');
+    const audios = (p.assets || []).filter(a => a.kind === 'audio');
+    const mainSrc = p.cover_url || (images[0] && images[0].url) || '';
+    const gallery = mainSrc
+      ? `<img id="detailMain" src="${mainSrc}" alt="${SN.escape(p.title)}" class="w-full h-full object-contain"/>`
+      : `<span class="material-symbols-outlined text-5xl text-outline">graphic_eq</span>`;
+    const thumbs = images.length > 1
+      ? `<div class="grid grid-cols-5 gap-2">${images.map(a => `
+          <button data-img="${a.url}" class="aspect-square bg-surface-container-lowest border border-outline-variant rounded overflow-hidden hover:border-primary-fixed-dim transition-colors">
+            <img src="${a.url}" alt="" class="w-full h-full object-cover"/></button>`).join('')}</div>`
+      : '';
+    const audioBlock = audios.length
+      ? `<div class="flex flex-col gap-2">${audios.map(a => `
+          <div class="bg-surface-container border border-outline-variant rounded p-3">
+            <p class="font-metadata-sm text-[11px] text-on-surface-variant mb-2 truncate flex items-center gap-2"><span class="material-symbols-outlined text-sm text-primary-fixed-dim">graphic_eq</span>${SN.escape(a.file_name)}</p>
+            <audio controls preload="none" src="${a.url}" class="w-full"></audio></div>`).join('')}</div>`
+      : '';
+    const specs = p.technical_specs ? p.technical_specs.split(',').map(s => s.trim()).filter(Boolean) : [];
+    const specBlock = specs.length
+      ? `<div class="flex flex-col gap-2"><p class="font-label-caps text-[10px] text-outline tracking-widest">HARDWARE / SOFTWARE</p>
+           <div class="flex flex-wrap gap-1">${specs.map(s => `<span class="bg-surface-container-lowest border border-outline-variant text-on-surface-variant px-2 py-0.5 rounded font-metadata-sm text-[11px]">${SN.escape(s)}</span>`).join('')}</div></div>`
+      : '';
+    const descBlock = p.description
+      ? `<div class="flex flex-col gap-2"><p class="font-label-caps text-[10px] text-outline tracking-widest">NOTES</p>
+           <p class="font-body-md text-body-md text-on-surface-variant whitespace-pre-wrap">${SN.escape(p.description)}</p></div>`
+      : '';
+    return `
+      <div class="flex flex-col gap-stack-md">
+        <button id="backBtn" class="self-start flex items-center gap-2 font-label-caps text-label-caps text-on-surface-variant hover:text-primary-fixed-dim transition-colors">
+          <span class="material-symbols-outlined text-base">arrow_back</span> Back to list
+        </button>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-md">
+          <div class="lg:col-span-2 flex flex-col gap-4">
+            <div class="aspect-video bg-surface-container-lowest border border-outline-variant rounded inner-glow overflow-hidden flex items-center justify-center">${gallery}</div>
+            ${thumbs}
+            ${audioBlock}
+          </div>
+          <div class="lg:col-span-1 flex flex-col gap-stack-sm">
+            <div>
+              <span class="font-metadata-sm text-metadata-sm text-primary-fixed-dim">${SN.escape(p.client_name || '—')}</span>
+              <h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">${SN.escape(p.title)}</h2>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="bg-primary-container/10 text-primary-fixed-dim border-l-2 border-primary-fixed-dim px-2 py-0.5 font-label-caps text-[10px] rounded-r">${SN.escape(SN.catLabel(p)).toUpperCase()}</span>
+              ${(p.tags && p.tags.length) ? p.tags.map(SN.tagChip).join('') : ''}
+            </div>
+            ${p.completion_date ? `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">event</span> ${SN.escape(p.completion_date)}</p>` : ''}
+            ${specBlock}
+            ${descBlock}
+          </div>
+        </div>
+      </div>`;
+  }
+
   load('');
 })();
 </script>

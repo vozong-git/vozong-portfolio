@@ -55,7 +55,7 @@ const SN = {
       ? p.tags.map(SN.tagChip).join('')
       : SN.tagChip(SN.catLabel(p).toUpperCase());
     return `
-    <article class="bg-surface-container-high border border-outline-variant rounded p-4 hover:border-primary-fixed-dim transition-colors group flex gap-4 items-center">
+    <article data-id="${p.id}" class="bg-surface-container-high border border-outline-variant rounded p-4 hover:border-primary-fixed-dim transition-colors group flex gap-4 items-center cursor-pointer">
       <div class="w-20 h-20 bg-surface-container-lowest rounded overflow-hidden flex-shrink-0 relative">${cover}</div>
       <div class="flex flex-col gap-1 overflow-hidden">
         <span class="font-metadata-sm text-metadata-sm text-primary-fixed-dim truncate">${SN.escape(p.client_name || '—')}</span>
