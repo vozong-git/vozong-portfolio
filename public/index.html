@@ -50,12 +50,9 @@
     </div>
   </header>
 
-  <section class="flex flex-col gap-4">
-    <h3 id="studioHeading" class="font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant pb-2">STUDIO PROJECTS</h3>
-    <div id="projectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <p class="font-metadata-sm text-metadata-sm text-on-surface-variant col-span-full">Loading…</p>
-    </div>
-  </section>
+  <div id="projectArea" class="flex flex-col gap-stack-lg">
+    <p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>
+  </div>
 </main>
 
 <script src="/assets/common.js"></script>
@@ -65,8 +62,12 @@
   if (me.isAdmin) document.getElementById('adminLink').hidden = false;
 
   let activeCat = '';
-  const grid = document.getElementById('projectGrid');
-  const heading = document.getElementById('studioHeading');
+  const area = document.getElementById('projectArea');
+  const CATS = [
+    { key: 'studio', label: 'Studio Work' },
+    { key: 'playback', label: 'Playback' },
+    { key: 'live', label: 'Live Sound' },
+  ];
 
   function setActive(cat) {
     document.querySelectorAll('.nav-item').forEach(a => {
@@ -79,19 +80,35 @@
     });
   }
 
+  function section(label, projects) {
+    const body = projects.length
+      ? `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${projects.map(SN.projectCard).join('')}</div>`
+      : `<p class="font-metadata-sm text-metadata-sm text-outline pl-1">No projects yet.</p>`;
+    return `
+      <section class="flex flex-col gap-4">
+        <h3 class="font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant pb-2">${SN.escape(label).toUpperCase()}</h3>
+        ${body}
+      </section>`;
+  }
+
   async function load(cat) {
     activeCat = cat; setActive(cat);
-    heading.textContent = cat ? (SN.CATEGORY_LABELS[cat] || cat).toUpperCase() + ' PROJECTS' : 'STUDIO PROJECTS';
-    grid.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant col-span-full">Loading…</p>`;
+    area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>`;
     try {
       const url = '/api/projects' + (cat ? `?category=${cat}` : '');
       const { projects } = await SN.api('GET', url);
       document.getElementById('totalCount').textContent = projects.length;
-      grid.innerHTML = projects.length
-        ? projects.map(SN.projectCard).join('')
-        : `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant col-span-full">No published projects yet.</p>`;
+      if (cat) {
+        area.innerHTML = section(SN.CATEGORY_LABELS[cat] || cat, projects);
+      } else {
+        // Overview: one section per category, always shown, in order
+        let html = CATS.map(c => section(c.label, projects.filter(p => p.category === c.key))).join('');
+        const others = projects.filter(p => !CATS.some(c => c.key === p.category));
+        if (others.length) html += section('Other', others);
+        area.innerHTML = html;
+      }
     } catch (e) {
-      grid.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-error col-span-full">${SN.escape(e.message)}</p>`;
+      area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-error">${SN.escape(e.message)}</p>`;
     }
   }
 
