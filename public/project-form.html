@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Register Project — Kim, Bojong</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/assets/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="/assets/base.css" rel="stylesheet"/>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
+
+<nav class="hidden md:flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50">
+  <div class="px-4 mb-8">
+    <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim whitespace-nowrap">Kim, Bojong</h1>
+    <p class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-2">Senior Technical Director</p>
+  </div>
+  <div class="flex-1 overflow-y-auto flex flex-col gap-1">
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/admin.html">
+      <span class="material-symbols-outlined">dashboard</span><span class="font-label-caps text-label-caps">Overview</span></a>
+    <a class="bg-primary-container/10 text-primary-fixed-dim border-l-4 border-primary-fixed-dim px-4 py-3 flex items-center gap-3" href="/project-form.html">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">add_circle</span><span class="font-label-caps text-label-caps">New Project</span></a>
+  </div>
+  <div class="mt-auto px-4 pt-4 border-t border-outline-variant">
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/admin.html">
+      <span class="material-symbols-outlined">arrow_back</span><span class="font-label-caps text-label-caps">Back</span></a>
+  </div>
+</nav>
+
+<main class="flex-1 md:ml-64 p-gutter max-w-container-max mx-auto w-full">
+  <header class="mb-stack-lg flex items-end justify-between">
+    <div>
+      <h2 id="pageTitle" class="font-display-lg text-headline-lg text-on-surface">Register New Project</h2>
+      <p class="font-metadata-sm text-metadata-sm text-primary-fixed-dim mt-1">● SYSTEM UPDATE PROTOCOL</p>
+    </div>
+    <div class="text-right hidden md:block">
+      <p class="font-label-caps text-label-caps text-on-surface-variant">INPUT TERMINAL</p>
+      <p class="font-metadata-sm text-metadata-sm text-outline">V2.4.1.A</p>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-stack-md">
+    <!-- left: fields -->
+    <div class="xl:col-span-2 flex flex-col gap-stack-md">
+      <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
+        <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">badge</span> Primary Identification</h3>
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Project Title *</label>
+        <input id="f_title" placeholder="e.g. Echoes of the Void" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Artist / Client Name</label>
+            <input id="f_client" placeholder="Client Designation" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+          </div>
+          <div>
+            <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Target Completion Date</label>
+            <input id="f_date" type="date" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface focus:border-primary-fixed-dim focus:ring-0"/>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
+        <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">tune</span> Technical Specifications</h3>
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Work Category Routing</label>
+        <div id="catGroup" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 mb-4">
+          <button type="button" data-cat="studio"   class="cat-btn">Studio Mix</button>
+          <button type="button" data-cat="master"   class="cat-btn">Master</button>
+          <button type="button" data-cat="live"     class="cat-btn">Live Sound</button>
+          <button type="button" data-cat="playback" class="cat-btn">Playback</button>
+        </div>
+
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Tags (comma separated)</label>
+        <input id="f_tags" placeholder="MIXING, MASTERING" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Hardware/Software Deployment (Comma separated)</label>
+        <input id="f_specs" placeholder="SSL 4000G, Pro Tools HDX, Neve 1073" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Project Description / Technical Notes</label>
+        <textarea id="f_desc" rows="4" placeholder="Enter routing notes, specific plugin chains, or client feedback…" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"></textarea>
+      </section>
+    </div>
+
+    <!-- right: media + status -->
+    <div class="xl:col-span-1 flex flex-col gap-stack-md">
+      <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
+        <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">cloud_upload</span> Media Ingestion</h3>
+        <div id="dropZone" class="border-2 border-dashed border-outline-variant rounded-lg p-6 flex flex-col items-center text-center cursor-pointer hover:border-primary-fixed-dim transition-colors">
+          <span class="material-symbols-outlined text-3xl text-primary-fixed-dim mb-2">backup</span>
+          <p class="font-metadata-sm text-metadata-sm text-on-surface">Drag &amp; Drop Reference Files</p>
+          <p class="font-label-caps text-[10px] text-outline mt-1">WAV, AIF, MP3, PNG, JPG (MAX 500MB)</p>
+          <button type="button" id="browseBtn" class="mt-4 border border-outline-variant rounded px-4 py-2 font-label-caps text-label-caps text-on-surface-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim transition-colors">Browse Terminal</button>
+          <input id="fileInput" type="file" multiple accept=".wav,.aif,.aiff,.mp3,.png,.jpg,.jpeg,.webp,.gif,image/*,audio/*" hidden/>
+        </div>
+        <ul id="fileList" class="mt-3 flex flex-col gap-2"></ul>
+        <div id="existingAssets" class="mt-3 flex flex-col gap-2"></div>
+      </section>
+
+      <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-metadata-sm text-metadata-sm text-on-surface-variant">System<br>Status</span>
+          <select id="f_status" class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-1.5 text-primary-fixed-dim font-label-caps text-label-caps focus:border-primary-fixed-dim focus:ring-0">
+            <option value="draft">READY / DRAFT</option>
+            <option value="published">PUBLISHED</option>
+          </select>
+        </div>
+        <button id="submitBtn" class="w-full bg-primary-fixed-dim text-on-primary-fixed font-label-caps text-label-caps py-3 rounded flex items-center justify-center gap-2 hover:opacity-90 transition-opacity glow-bloom">
+          <span class="material-symbols-outlined text-sm">power_settings_new</span> <span id="submitLabel">INITIALIZE UPLOAD</span>
+        </button>
+        <button id="deleteBtn" hidden class="w-full mt-2 border border-error/40 text-error font-label-caps text-label-caps py-2 rounded hover:bg-error/10 transition-colors">DELETE PROJECT</button>
+      </section>
+    </div>
+  </div>
+</main>
+
+<style>
+  .cat-btn { font: 700 11px 'JetBrains Mono'; letter-spacing:.05em; padding:10px 8px; border-radius:.25rem;
+    border:1px solid #3b494c; color:#bac9cc; background:#0e0e0e; transition:all .15s; }
+  .cat-btn:hover { border-color:#00daf3; color:#00daf3; }
+  .cat-btn.active { background:rgba(0,229,255,.1); border-color:#00daf3; color:#00daf3; box-shadow:0 0 12px rgba(0,218,243,.25); }
+</style>
+
+<script src="/assets/common.js"></script>
+<script>
+(async () => {
+  const me = await SN.me();
+  if (!me.isAdmin) { location.href = '/login.html'; return; }
+
+  const params = new URLSearchParams(location.search);
+  const editId = params.get('id');
+  let category = 'studio';
+  let pendingFiles = [];
+
+  const $ = (id) => document.getElementById(id);
+
+  function setCategory(c) {
+    category = c;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === c));
+  }
+  document.getElementById('catGroup').addEventListener('click', e => {
+    const b = e.target.closest('.cat-btn'); if (b) setCategory(b.dataset.cat);
+  });
+  setCategory('studio');
+
+  // ── file picking / drag&drop ──
+  const dz = $('dropZone'), input = $('fileInput'), list = $('fileList');
+  $('browseBtn').addEventListener('click', () => input.click());
+  dz.addEventListener('click', (e) => { if (e.target === dz || e.target.tagName === 'P' || e.target.tagName === 'SPAN') input.click(); });
+  ['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('border-primary-fixed-dim'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('border-primary-fixed-dim'); }));
+  dz.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+  input.addEventListener('change', () => addFiles(input.files));
+
+  function addFiles(fileLike) {
+    for (const f of fileLike) pendingFiles.push(f);
+    renderFileList();
+  }
+  function renderFileList() {
+    list.innerHTML = pendingFiles.map((f, i) => `
+      <li class="flex items-center justify-between bg-surface-container-lowest border border-outline-variant rounded px-3 py-2">
+        <span class="font-metadata-sm text-[11px] text-on-surface truncate flex items-center gap-2">
+          <span class="material-symbols-outlined text-sm text-primary-fixed-dim">${f.type.startsWith('image') ? 'image' : 'graphic_eq'}</span>${SN.escape(f.name)}
+        </span>
+        <button data-rm="${i}" class="text-outline hover:text-error"><span class="material-symbols-outlined text-[16px]">close</span></button>
+      </li>`).join('');
+  }
+  list.addEventListener('click', e => {
+    const b = e.target.closest('button[data-rm]'); if (!b) return;
+    pendingFiles.splice(+b.dataset.rm, 1); renderFileList();
+  });
+
+  // ── edit mode: prefill ──
+  if (editId) {
+    $('pageTitle').textContent = 'Edit Project';
+    $('submitLabel').textContent = 'SAVE CHANGES';
+    $('deleteBtn').hidden = false;
+    try {
+      const { project: p } = await SN.api('GET', `/api/projects/${editId}`);
+      $('f_title').value = p.title || '';
+      $('f_client').value = p.client_name || '';
+      $('f_date').value = p.completion_date || '';
+      $('f_tags').value = (p.tags || []).join(', ');
+      $('f_specs').value = p.technical_specs || '';
+      $('f_desc').value = p.description || '';
+      $('f_status').value = p.status || 'draft';
+      setCategory(p.category || 'studio');
+      renderExisting(p.assets || []);
+    } catch (e) { SN.toast(e.message, 'err'); }
+  }
+
+  function renderExisting(assets) {
+    const wrap = $('existingAssets');
+    if (!assets.length) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = `<p class="font-label-caps text-[10px] text-outline mt-2 mb-1">EXISTING ASSETS</p>` +
+      assets.map(a => `
+      <div class="flex items-center justify-between bg-surface-container-lowest border border-outline-variant rounded px-3 py-2" data-aid="${a.id}">
+        <span class="font-metadata-sm text-[11px] text-on-surface truncate flex items-center gap-2">
+          ${a.kind === 'image' ? `<img src="${a.url}" class="w-6 h-6 object-cover rounded"/>` : '<span class="material-symbols-outlined text-sm text-primary-fixed-dim">graphic_eq</span>'}
+          ${SN.escape(a.file_name)} ${a.is_cover ? '<span class="text-[9px] text-primary-fixed-dim">COVER</span>' : ''}
+        </span>
+        <span class="flex items-center gap-1">
+          ${a.kind === 'image' && !a.is_cover ? `<button data-setcover="${a.id}" title="Set as cover" class="text-outline hover:text-primary-fixed-dim"><span class="material-symbols-outlined text-[16px]">star</span></button>` : ''}
+          <button data-delasset="${a.id}" title="Delete asset" class="text-outline hover:text-error"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+        </span>
+      </div>`).join('');
+  }
+  $('existingAssets').addEventListener('click', async (e) => {
+    const cover = e.target.closest('[data-setcover]');
+    const del = e.target.closest('[data-delasset]');
+    try {
+      if (cover) { await SN.api('PATCH', `/api/assets/${cover.dataset.setcover}/cover`); SN.toast('Cover updated'); reloadAssets(); }
+      if (del) { if (!confirm('Delete this asset from Drive?')) return; await SN.api('DELETE', `/api/assets/${del.dataset.delasset}`); SN.toast('Asset deleted'); reloadAssets(); }
+    } catch (err) { SN.toast(err.message, 'err'); }
+  });
+  async function reloadAssets() {
+    const { project } = await SN.api('GET', `/api/projects/${editId}`);
+    renderExisting(project.assets || []);
+  }
+
+  // ── submit ──
+  $('submitBtn').addEventListener('click', async () => {
+    const title = $('f_title').value.trim();
+    if (!title) { SN.toast('Project Title is required', 'err'); $('f_title').focus(); return; }
+
+    const payload = {
+      title,
+      client_name: $('f_client').value.trim(),
+      completion_date: $('f_date').value || null,
+      category,
+      tags: $('f_tags').value,
+      technical_specs: $('f_specs').value.trim(),
+      description: $('f_desc').value.trim(),
+      status: $('f_status').value,
+    };
+
+    const btn = $('submitBtn'); btn.disabled = true; btn.classList.add('opacity-60');
+    try {
+      let projectId = editId;
+      if (editId) {
+        await SN.api('PATCH', `/api/projects/${editId}`, payload);
+      } else {
+        const { project } = await SN.api('POST', '/api/projects', payload);
+        projectId = project.id;
+      }
+
+      if (pendingFiles.length) {
+        $('submitLabel').textContent = 'UPLOADING…';
+        const fd = new FormData();
+        fd.append('project_id', projectId);
+        pendingFiles.forEach(f => fd.append('files', f));
+        await SN.api('POST', '/api/upload', fd, true);
+      }
+      SN.toast('Saved');
+      setTimeout(() => location.href = '/admin.html', 700);
+    } catch (err) {
+      SN.toast(err.message, 'err');
+      btn.disabled = false; btn.classList.remove('opacity-60');
+      $('submitLabel').textContent = editId ? 'SAVE CHANGES' : 'INITIALIZE UPLOAD';
+    }
+  });
+
+  $('deleteBtn').addEventListener('click', async () => {
+    if (!editId) return;
+    if (!confirm('Delete this project and all its Drive files?')) return;
+    try { await SN.api('DELETE', `/api/projects/${editId}`); SN.toast('Deleted'); setTimeout(() => location.href = '/admin.html', 600); }
+    catch (e) { SN.toast(e.message, 'err'); }
+  });
+})();
+</script>
+</body>
+</html>

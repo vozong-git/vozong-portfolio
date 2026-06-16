@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kim, Bojong — Sound Engineer Portfolio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/assets/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="/assets/base.css" rel="stylesheet"/>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
+
+<!-- SideNav -->
+<nav class="hidden md:flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50">
+  <div class="px-4 mb-8">
+    <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim whitespace-nowrap">Kim, Bojong</h1>
+    <p class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-2">Senior Technical Director</p>
+  </div>
+  <div class="flex-1 overflow-y-auto flex flex-col gap-1" id="catNav">
+    <a data-cat="" class="nav-item bg-primary-container/10 text-primary-fixed-dim border-l-4 border-primary-fixed-dim px-4 py-3 flex items-center gap-3 shadow-[0_0_12px_rgba(0,218,243,0.2)]" href="#">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">dashboard</span>
+      <span class="font-label-caps text-label-caps">Overview</span></a>
+    <a data-cat="studio" class="nav-item text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all duration-150 inner-glow" href="#">
+      <span class="material-symbols-outlined">equalizer</span><span class="font-label-caps text-label-caps">Mix/Master</span></a>
+    <a data-cat="playback" class="nav-item text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all duration-150 inner-glow" href="#">
+      <span class="material-symbols-outlined">settings_voice</span><span class="font-label-caps text-label-caps">Playback</span></a>
+    <a data-cat="live" class="nav-item text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all duration-150 inner-glow" href="#">
+      <span class="material-symbols-outlined">settings_input_component</span><span class="font-label-caps text-label-caps">Live Sound</span></a>
+  </div>
+  <div class="mt-auto px-4 flex flex-col gap-1 pt-4 border-t border-outline-variant">
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/contact.html">
+      <span class="material-symbols-outlined">mail</span><span class="font-label-caps text-label-caps">Contact</span></a>
+    <a id="adminLink" hidden class="text-primary-fixed-dim px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/admin.html">
+      <span class="material-symbols-outlined">admin_panel_settings</span><span class="font-label-caps text-label-caps">Admin</span></a>
+  </div>
+</nav>
+
+<main class="flex-1 md:ml-64 p-gutter max-w-container-max mx-auto w-full">
+  <header class="md:hidden flex justify-between items-center w-full pb-stack-sm mb-stack-md border-b border-outline-variant">
+    <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim">Kim, Bojong</h1>
+  </header>
+
+  <header class="mb-stack-lg flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Sound Engineer Portfolio</h2>
+      <div class="flex gap-4 font-metadata-sm text-metadata-sm text-on-surface-variant">
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">folder_open</span> Total Projects: <span id="totalCount">—</span></span>
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> Career: 10 Years</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-stack-md">
+    <section class="xl:col-span-2 flex flex-col gap-4">
+      <h3 id="studioHeading" class="font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant pb-2">STUDIO PROJECTS</h3>
+      <div id="projectGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <p class="font-metadata-sm text-metadata-sm text-on-surface-variant col-span-2">Loading…</p>
+      </div>
+    </section>
+
+    <section class="xl:col-span-1 flex flex-col gap-4">
+      <h3 class="font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant pb-2">LIVE SOUND TIMELINE</h3>
+      <div class="bg-surface-container border border-outline-variant rounded p-6 inner-glow h-full">
+        <div id="timeline" class="relative border-l border-outline-variant ml-3 space-y-6">
+          <p class="font-metadata-sm text-metadata-sm text-on-surface-variant pl-6">Loading…</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="/assets/common.js"></script>
+<script>
+(async () => {
+  const me = await SN.me();
+  if (me.isAdmin) document.getElementById('adminLink').hidden = false;
+
+  let activeCat = '';
+  const grid = document.getElementById('projectGrid');
+  const heading = document.getElementById('studioHeading');
+
+  function setActive(cat) {
+    document.querySelectorAll('.nav-item').forEach(a => {
+      const on = (a.dataset.cat || '') === cat;
+      a.classList.toggle('bg-primary-container/10', on);
+      a.classList.toggle('text-primary-fixed-dim', on);
+      a.classList.toggle('border-l-4', on);
+      a.classList.toggle('border-primary-fixed-dim', on);
+      a.classList.toggle('text-on-surface-variant', !on);
+    });
+  }
+
+  async function load(cat) {
+    activeCat = cat; setActive(cat);
+    heading.textContent = cat ? (SN.CATEGORY_LABELS[cat] || cat).toUpperCase() + ' PROJECTS' : 'STUDIO PROJECTS';
+    grid.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant col-span-2">Loading…</p>`;
+    try {
+      const url = '/api/projects' + (cat ? `?category=${cat}` : '');
+      const { projects } = await SN.api('GET', url);
+      document.getElementById('totalCount').textContent = projects.length;
+      grid.innerHTML = projects.length
+        ? projects.map(SN.projectCard).join('')
+        : `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant col-span-2">No published projects yet.</p>`;
+    } catch (e) {
+      grid.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-error col-span-2">${SN.escape(e.message)}</p>`;
+    }
+  }
+
+  document.getElementById('catNav').addEventListener('click', (e) => {
+    const a = e.target.closest('.nav-item'); if (!a) return;
+    e.preventDefault(); load(a.dataset.cat || '');
+  });
+
+  // timeline
+  try {
+    const { timeline } = await SN.api('GET', '/api/timeline');
+    const tl = document.getElementById('timeline');
+    tl.innerHTML = timeline.length
+      ? timeline.map((t, i) => SN.timelineItem(t, i === 0)).join('')
+      : `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant pl-6">No timeline entries.</p>`;
+  } catch (_) {}
+
+  load('');
+})();
+</script>
+</body>
+</html>

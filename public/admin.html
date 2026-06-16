@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard — Kim, Bojong</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/assets/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="/assets/base.css" rel="stylesheet"/>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
+
+<nav class="hidden md:flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50">
+  <div class="px-4 mb-8">
+    <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim whitespace-nowrap">Kim, Bojong</h1>
+    <p class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-2">Senior Technical Director</p>
+  </div>
+  <div class="flex-1 overflow-y-auto flex flex-col gap-1">
+    <a class="bg-primary-container/10 text-primary-fixed-dim border-l-4 border-primary-fixed-dim px-4 py-3 flex items-center gap-3 shadow-[0_0_12px_rgba(0,218,243,0.2)]" href="/admin.html">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">dashboard</span><span class="font-label-caps text-label-caps">Overview</span></a>
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/project-form.html">
+      <span class="material-symbols-outlined">add_circle</span><span class="font-label-caps text-label-caps">New Project</span></a>
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/" target="_blank">
+      <span class="material-symbols-outlined">visibility</span><span class="font-label-caps text-label-caps">Public View</span></a>
+  </div>
+  <div class="mt-auto px-4 flex flex-col gap-1 pt-4 border-t border-outline-variant">
+    <div id="who" class="px-4 py-2 font-metadata-sm text-[11px] text-outline truncate"></div>
+    <a id="driveStatus" class="px-4 py-2 font-metadata-sm text-[11px] flex items-center gap-2"></a>
+    <button id="logoutBtn" class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow text-left">
+      <span class="material-symbols-outlined">logout</span><span class="font-label-caps text-label-caps">Logout</span></button>
+  </div>
+</nav>
+
+<main class="flex-1 md:ml-64 p-gutter max-w-container-max mx-auto w-full">
+  <header class="mb-stack-lg flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Sound Engineer Portfolio</h2>
+      <div class="flex gap-4 font-metadata-sm text-metadata-sm text-on-surface-variant">
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">folder_open</span> Total Projects: <span id="totalCount">—</span></span>
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> Career: 10 Years</span>
+      </div>
+    </div>
+    <a href="/project-form.html" class="bg-primary-fixed-dim/10 text-primary-fixed-dim border border-primary-fixed-dim font-label-caps text-label-caps py-2 px-6 rounded hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all flex items-center justify-center gap-2 glow-bloom">
+      <span class="material-symbols-outlined text-sm">add_circle</span> Quick Add
+    </a>
+  </header>
+
+  <section class="flex flex-col gap-4">
+    <div class="flex items-center justify-between border-b border-outline-variant pb-2">
+      <h3 class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">RECENT HISTORY MANAGEMENT</h3>
+      <div class="flex gap-2" id="filterTabs">
+        <button data-f="" class="ftab font-label-caps text-[10px] px-3 py-1 rounded text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim">ALL</button>
+        <button data-f="published" class="ftab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">PUBLISHED</button>
+        <button data-f="draft" class="ftab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">DRAFT</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto border border-outline-variant rounded bg-surface-container inner-glow">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-outline-variant bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant">
+            <th class="p-4 font-normal">DATE</th>
+            <th class="p-4 font-normal">PROJECT NAME</th>
+            <th class="p-4 font-normal">TYPE</th>
+            <th class="p-4 font-normal">STATUS</th>
+            <th class="p-4 font-normal text-right">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="font-metadata-sm text-metadata-sm">
+          <tr><td colspan="5" class="p-6 text-center text-on-surface-variant">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="/assets/common.js"></script>
+<script>
+(async () => {
+  const me = await SN.me();
+  if (!me.isAdmin) { location.href = '/login.html'; return; }
+  document.getElementById('who').textContent = me.email;
+
+  // drive link status
+  try {
+    const h = await SN.api('GET', '/api/health');
+    const el = document.getElementById('driveStatus');
+    if (h.driveLinked) {
+      el.className = 'px-4 py-2 font-metadata-sm text-[11px] flex items-center gap-2 text-success';
+      el.innerHTML = '<span class="material-symbols-outlined text-sm">cloud_done</span> Drive linked';
+    } else {
+      el.className = 'px-4 py-2 font-metadata-sm text-[11px] flex items-center gap-2 text-secondary';
+      el.innerHTML = '<span class="material-symbols-outlined text-sm">cloud_off</span> Drive not linked';
+    }
+  } catch (_) {}
+
+  let filter = '';
+  const TYPE_COLOR = { live: 'text-secondary-container', master: 'text-tertiary-container' };
+
+  function statusChip(s) {
+    return s === 'published'
+      ? `<span class="bg-primary-container/10 text-primary-fixed-dim border-l-2 border-primary-fixed-dim px-2 py-1 rounded-r">PUBLISHED</span>`
+      : `<span class="bg-surface-variant text-on-surface-variant border-l-2 border-outline px-2 py-1 rounded-r">DRAFT</span>`;
+  }
+
+  function row(p) {
+    const typeColor = TYPE_COLOR[p.category] || 'text-primary-fixed-dim';
+    return `<tr class="border-b border-outline-variant hover:bg-surface-container-high transition-colors" data-id="${p.id}">
+      <td class="p-4 text-on-surface-variant">${SN.escape(p.completion_date || p.created_at?.slice(0,10) || '')}</td>
+      <td class="p-4 text-on-surface font-semibold">${SN.escape(p.title)}</td>
+      <td class="p-4 ${typeColor}">${SN.escape(SN.catLabel(p))}</td>
+      <td class="p-4">${statusChip(p.status)}</td>
+      <td class="p-4 text-right whitespace-nowrap">
+        <button data-act="toggle" title="Toggle publish" class="text-outline hover:text-success transition-colors"><span class="material-symbols-outlined text-[18px]">${p.status === 'published' ? 'toggle_on' : 'toggle_off'}</span></button>
+        <button data-act="edit" title="Edit" class="text-outline hover:text-primary-fixed-dim transition-colors ml-2"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+        <button data-act="del" title="Delete" class="text-outline hover:text-error transition-colors ml-2"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+      </td>
+    </tr>`;
+  }
+
+  const tbody = document.getElementById('tableBody');
+
+  async function load() {
+    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-on-surface-variant">Loading…</td></tr>`;
+    const url = '/api/projects' + (filter ? `?status=${filter}` : '');
+    const { projects } = await SN.api('GET', url);
+    document.getElementById('totalCount').textContent = projects.length;
+    tbody.innerHTML = projects.length
+      ? projects.map(row).join('')
+      : `<tr><td colspan="5" class="p-6 text-center text-on-surface-variant">No projects. <a href="/project-form.html" class="text-primary-fixed-dim">Create one →</a></td></tr>`;
+  }
+
+  document.getElementById('filterTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.ftab'); if (!b) return;
+    filter = b.dataset.f;
+    document.querySelectorAll('.ftab').forEach(t => {
+      const on = t === b;
+      t.className = 'ftab font-label-caps text-[10px] px-3 py-1 rounded ' +
+        (on ? 'text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim'
+            : 'text-on-surface-variant border border-outline-variant');
+    });
+    load();
+  });
+
+  tbody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-act]'); if (!btn) return;
+    const tr = btn.closest('tr'); const id = tr.dataset.id; const act = btn.dataset.act;
+    try {
+      if (act === 'edit') { location.href = `/project-form.html?id=${id}`; return; }
+      if (act === 'toggle') {
+        const isPub = tr.querySelector('[data-act="toggle"] .material-symbols-outlined').textContent === 'toggle_on';
+        await SN.api('PATCH', `/api/projects/${id}`, { status: isPub ? 'draft' : 'published' });
+        SN.toast(isPub ? 'Set to draft' : 'Published'); load();
+      }
+      if (act === 'del') {
+        if (!confirm('Delete this project and its Drive files? This cannot be undone.')) return;
+        await SN.api('DELETE', `/api/projects/${id}`);
+        SN.toast('Deleted'); load();
+      }
+    } catch (err) { SN.toast(err.message, 'err'); }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await SN.api('POST', '/api/auth/logout'); location.href = '/login.html';
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "studio-noir-portfolio",
+  "version": "1.0.0",
+  "description": "Sound Engineer Portfolio (Studio Noir) — Express backend with Google OAuth (single-admin) and Google Drive image storage.",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "init-db": "node -e \"require('./src/db').init(); console.log('DB initialized')\""
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "googleapis": "^144.0.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.2.0"
+  }
+}
