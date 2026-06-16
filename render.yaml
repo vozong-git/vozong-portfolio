@@ -9,7 +9,9 @@ services:
     region: singapore        # closest Render region to Korea
     branch: main
     autoDeploy: true
-    buildCommand: npm install && npm run build:css
+    # --include=dev: NODE_ENV=production would otherwise skip devDeps (tailwindcss),
+    # breaking the CSS build. We need tailwindcss at build time only.
+    buildCommand: npm install --include=dev && npm run build:css
     startCommand: node server.js   # build already ran above; skip prestart double-build
     healthCheckPath: /api/health
     disk:
