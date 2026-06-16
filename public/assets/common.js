@@ -65,21 +65,6 @@ const SN = {
     </article>`;
   },
 
-  /* Live Sound timeline item */
-  timelineItem(t, first) {
-    const dot = first || t.is_current
-      ? `<span class="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-primary-fixed-dim glow-bloom"></span>`
-      : `<span class="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-surface-container-highest border border-outline-variant"></span>`;
-    return `
-    <div class="relative pl-6">${dot}
-      <div class="flex flex-col gap-1">
-        <span class="font-metadata-sm text-metadata-sm text-on-surface-variant">${SN.escape(t.period || '')}</span>
-        <h4 class="font-body-md text-body-md font-semibold text-on-surface">${SN.escape(t.role)}</h4>
-        <p class="font-metadata-sm text-metadata-sm text-primary-fixed-dim">${SN.escape(t.venue || '')}</p>
-      </div>
-    </div>`;
-  },
-
   /* mobile off-canvas sidebar: inject a hamburger + overlay, wire toggling */
   initSidebar() {
     const nav = document.getElementById('sideNav');

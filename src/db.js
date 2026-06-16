@@ -48,18 +48,6 @@ CREATE TABLE IF NOT EXISTS assets (
 );
 CREATE INDEX IF NOT EXISTS idx_assets_project ON assets(project_id);
 
-CREATE TABLE IF NOT EXISTS timeline (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  role       TEXT    NOT NULL,                       -- e.g. "FOH Engineer"
-  venue      TEXT,                                   -- e.g. "Red Rocks Amphitheatre"
-  period     TEXT,                                   -- e.g. "Oct 2023 - Present"
-  is_current INTEGER NOT NULL DEFAULT 0,
-  kind       TEXT    NOT NULL DEFAULT 'live'         -- live|playback
-               CHECK (kind IN ('live','playback')),
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-
 -- single-row table holding public contact details (editable in admin)
 CREATE TABLE IF NOT EXISTS contact (
   id         INTEGER PRIMARY KEY CHECK (id = 1),
@@ -85,11 +73,6 @@ CREATE TABLE IF NOT EXISTS admin_state (
 
 function init() {
   open().exec(SCHEMA);
-  // migration: older DBs created before timeline.kind existed
-  const cols = db.prepare('PRAGMA table_info(timeline)').all();
-  if (!cols.some((c) => c.name === 'kind')) {
-    db.exec("ALTER TABLE timeline ADD COLUMN kind TEXT NOT NULL DEFAULT 'live'");
-  }
   return db;
 }
 
