@@ -147,20 +147,28 @@
 
   // ── file picking / drag&drop ──
   const dz = $('dropZone'), input = $('fileInput'), list = $('fileList');
+  let pasteArmed = false;
+  function disarmPaste() { pasteArmed = false; dz.classList.remove('border-primary-fixed-dim'); }
   // Browse Terminal → file picker
   $('browseBtn').addEventListener('click', (e) => { e.stopPropagation(); input.click(); });
-  // clicking the drop zone arms clipboard paste (does not open the picker)
+  // clicking the drop zone ARMS clipboard paste (does not open the picker)
   dz.addEventListener('click', (e) => {
     if (e.target.closest('#browseBtn')) return;
+    pasteArmed = true;
     dz.classList.add('border-primary-fixed-dim');
-    SN.toast('Copy an image, then paste with ⌘V / Ctrl+V');
+    SN.toast('Ready — paste with ⌘V / Ctrl+V');
   });
-  // paste files/images from the clipboard
+  // clicking anywhere outside the drop zone disarms it (so pasting into
+  // other inputs isn't intercepted)
+  document.addEventListener('click', (e) => { if (!e.target.closest('#dropZone')) disarmPaste(); });
+  // paste files/images — only when the drop zone is armed
   document.addEventListener('paste', (e) => {
+    if (!pasteArmed) return;
     const items = (e.clipboardData && e.clipboardData.items) || [];
     const files = [];
     for (const it of items) if (it.kind === 'file') { const f = it.getAsFile(); if (f) files.push(f); }
-    if (files.length) { e.preventDefault(); addFiles(files); dz.classList.remove('border-primary-fixed-dim'); SN.toast(`${files.length} file(s) added from clipboard`); }
+    if (files.length) { e.preventDefault(); addFiles(files); SN.toast(`${files.length} file(s) added from clipboard`); }
+    disarmPaste();
   });
   // drag & drop (unchanged)
   ['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('border-primary-fixed-dim'); }));
