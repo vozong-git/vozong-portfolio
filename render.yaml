@@ -7,7 +7,7 @@ services:
     runtime: node
     plan: starter            # Persistent Disk requires a paid instance
     region: singapore        # closest Render region to Korea
-    branch: master
+    branch: main
     autoDeploy: true
     buildCommand: npm install && npm run build:css
     startCommand: node server.js   # build already ran above; skip prestart double-build
