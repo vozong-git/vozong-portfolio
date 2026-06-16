@@ -85,6 +85,8 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS, 구 base.css 통�
 
 ## TODO (우선순위)
 
+> 📌 **다음 작업 상세·우선순위는 [TODO.md](TODO.md) 참고** (1순위: 썸네일 서버 캐시 + SQLite 백업).
+
 1. ~~Tailwind Play-CDN → 빌드 스텝 전환~~ ✅ 완료 (Tailwind CLI v3, `npm run build:css`, prestart 자동 빌드).
 2. ~~실제 OAuth 클라이언트로 토큰 교환 + 드라이브 업로드 실동작 확인.~~ ✅ 완료 (2026-06-16, end-to-end 검증).
 3. 오디오 업로드(`portfolio_audio`) 프론트 UI 마무리 — 백엔드는 이미 지원.
