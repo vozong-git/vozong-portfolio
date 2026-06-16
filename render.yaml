@@ -3,7 +3,7 @@
 # SQLite needs a Persistent Disk, so this uses the (paid) Starter plan.
 services:
   - type: web
-    name: studio-noir-portfolio
+    name: vozong-portfolio
     runtime: node
     plan: starter            # Persistent Disk requires a paid instance
     region: singapore        # closest Render region to Korea

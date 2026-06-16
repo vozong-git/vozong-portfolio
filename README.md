@@ -105,7 +105,7 @@ SQLite 파일 DB를 쓰므로 **영속 디스크(Persistent Disk)** 가 필요�
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — OAuth 클라이언트
    - `ADMIN_EMAIL` — 로그인 허용할 본인 구글 계정
    - (`SESSION_SECRET`·`TOKEN_ENC_KEY`는 Render가 자동 생성·고정. `BASE_URL`은 `RENDER_EXTERNAL_URL`에서 자동 도출 → 입력 불필요)
-3. **첫 배포** → 서비스 URL 확인 (예: `https://studio-noir-portfolio.onrender.com`).
+3. **첫 배포** → 서비스 URL 확인 (예: `https://vozong-portfolio.onrender.com`).
 4. **Google Cloud Console → Credentials → OAuth 클라이언트**의 **Authorized redirect URIs**에 운영 URL 추가:
    ```
    https://<your-service>.onrender.com/api/auth/google/callback

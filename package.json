@@ -1,5 +1,5 @@
 {
-  "name": "studio-noir-portfolio",
+  "name": "vozong-portfolio",
   "version": "1.0.0",
   "description": "Sound Engineer Portfolio (Studio Noir) — Express backend with Google OAuth (single-admin) and Google Drive image storage.",
   "type": "commonjs",
