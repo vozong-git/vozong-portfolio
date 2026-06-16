@@ -1,8 +1,12 @@
-/* Studio Noir — shared Tailwind (Play CDN) config.
-   Loaded AFTER the Tailwind CDN <script>; setting tailwind.config re-triggers a scan. */
-window.tailwind = window.tailwind || {};
-tailwind.config = {
+/* Studio Noir — Tailwind build config.
+   Migrated from the former public/assets/theme.js (Play-CDN inline config).
+   Build:  npm run build:css   →   public/assets/app.css */
+'use strict';
+
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   darkMode: 'class',
+  content: ['./public/**/*.html', './public/assets/*.js'],
   theme: {
     extend: {
       colors: {
@@ -43,4 +47,8 @@ tailwind.config = {
       },
     },
   },
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/container-queries'),
+  ],
 };

@@ -73,9 +73,14 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 ```bash
 npm install
-npm start          # → http://localhost:8080
+npm start          # → http://localhost:8080  (start 전 prestart가 CSS를 자동 빌드)
 # 개발 모드(파일 변경 감지): npm run dev
+# CSS만 수동 빌드: npm run build:css   /   감시 빌드: npm run watch:css
 ```
+
+> CSS는 Tailwind CLI로 로컬 빌드합니다(Play-CDN 제거). 소스는 `src/styles/app.css` +
+> `tailwind.config.js`, 산출물은 `public/assets/app.css`(gitignore, `prestart`로 생성).
+> 디자인 토큰을 바꾸려면 `tailwind.config.js`를 수정하고 `npm run build:css`를 다시 실행하세요.
 
 1. 브라우저로 `BASE_URL` 접속 → 공개 포트폴리오 표시 (비어 있음).
 2. `/login.html` → **Sign in with Google** → 본인 계정으로 인증.
@@ -131,4 +136,4 @@ npm start          # → http://localhost:8080
 
 ## 6. 디자인 시스템
 
-`studio_noir/DESIGN.md`의 *Studio Noir* 토큰(Hanken Grotesk / Inter / JetBrains Mono, Electric Blue `#00daf3` 액센트, 다크 슬레이트 계층)을 `public/assets/theme.js`에 반영했습니다. 모든 페이지가 동일 사이드바와 토큰을 공유합니다.
+`studio_noir/DESIGN.md`의 *Studio Noir* 토큰(Hanken Grotesk / Inter / JetBrains Mono, Electric Blue `#00daf3` 액센트, 다크 슬레이트 계층)을 `tailwind.config.js`에 반영했습니다(이전 `public/assets/theme.js`에서 이전). 모든 페이지가 동일 사이드바와 토큰을 공유합니다.

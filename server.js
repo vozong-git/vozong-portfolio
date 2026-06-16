@@ -18,13 +18,13 @@ db.init(); // ensure schema exists
 const app = express();
 app.set('trust proxy', 1);
 
-// ── security headers (CSP relaxed for the Tailwind/fonts CDNs the Stitch UI uses) ──
+// ── security headers (CSS is now built locally; only Google Fonts remain remote) ──
 app.use(helmet({
   contentSecurityPolicy: {
     useDefaults: true,
     directives: {
       'default-src': ["'self'"],
-      'script-src': ["'self'", "'unsafe-inline'", 'https://cdn.tailwindcss.com'],
+      'script-src': ["'self'", "'unsafe-inline'"],
       'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       'font-src': ["'self'", 'https://fonts.gstatic.com'],
       'img-src': ["'self'", 'data:', 'blob:'],

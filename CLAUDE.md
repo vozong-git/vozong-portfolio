@@ -7,7 +7,8 @@
 ```bash
 npm install            # 의존성 설치
 cp .env.example .env   # 최초 1회, 이후 값 채우기 (§환경변수)
-npm start              # 서버 실행 (기본 PORT=3000)
+npm run build:css      # Tailwind CSS 빌드 → public/assets/app.css (watch: npm run watch:css)
+npm start              # 서버 실행 (기본 PORT=3000, prestart가 CSS 자동 빌드)
 node --check server.js # 문법 체크
 ```
 
@@ -43,13 +44,15 @@ src/
     upload.js      POST /api/upload → Drive. 첫 이미지 자동 커버. drive 미연결 시 409
     assets.js      raw 스트림 프록시, PATCH /:id/cover, DELETE /:id
     timeline.js    Live Sound 타임라인 CRUD
-public/            정적 프론트(빌드 스텝 없음, Tailwind Play-CDN)
+public/            정적 프론트(Tailwind CLI 빌드, Play-CDN 제거)
   index.html       공개 포트폴리오
   login.html       구글 로그인
   admin.html       대시보드(관리 테이블, publish 토글, 필터, drive 연결 상태)
   project-form.html 등록/수정 (?id= 수정모드)
   contact.html
-  assets/{theme.js, base.css, common.js}
+  assets/{app.css(빌드 산출물·gitignore), common.js}
+tailwind.config.js 디자인 토큰(구 theme.js에서 이전) + content scan
+src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS, 구 base.css 통합)
 ```
 
 ### 데이터 흐름 핵심
@@ -80,7 +83,7 @@ public/            정적 프론트(빌드 스텝 없음, Tailwind Play-CDN)
 
 ## TODO (우선순위)
 
-1. **Tailwind Play-CDN → 빌드 스텝 전환** (PostCSS/CLI). 프로덕션 비권장이라 1순위.
+1. ~~Tailwind Play-CDN → 빌드 스텝 전환~~ ✅ 완료 (Tailwind CLI v3, `npm run build:css`, prestart 자동 빌드).
 2. 실제 OAuth 클라이언트로 토큰 교환 + 드라이브 업로드 실동작 확인.
 3. 오디오 업로드(`portfolio_audio`) 프론트 UI 마무리 — 백엔드는 이미 지원.
 4. 배포(HTTPS, 실 도메인으로 `BASE_URL`·redirect URI 갱신).
