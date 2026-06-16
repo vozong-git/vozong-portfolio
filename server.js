@@ -81,7 +81,15 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'server_error' });
 });
 
-app.listen(config.port, () => {
+// Keep the process alive on stray async errors instead of crashing the whole
+// service (a single unhandled rejection would otherwise take the site down).
+process.on('unhandledRejection', (err) => console.error('[unhandledRejection]', err?.stack || err));
+process.on('uncaughtException', (err) => console.error('[uncaughtException]', err?.stack || err));
+
+// Bind explicitly to 0.0.0.0 so Render (and other PaaS) detect the open port
+// immediately — without this Node may bind IPv6-only and Render reports
+// "no-server" for several minutes after each deploy.
+app.listen(config.port, '0.0.0.0', () => {
   console.log(`\n  Studio Noir Portfolio`);
   console.log(`  ▸ ${config.baseUrl}  (env: ${config.env})`);
   console.log(`  ▸ admin: ${config.adminEmail || '(ADMIN_EMAIL not set)'}`);
