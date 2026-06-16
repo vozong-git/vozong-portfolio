@@ -64,7 +64,7 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS, 구 base.css 통�
 
 - **server.js 라우트 순서 절대 주의**: admin 게이팅 미들웨어가 `express.static` **앞**에 와야 함. 뒤로 가면 `admin.html`이 정적 파일로 그냥 서빙되어 인증 우회됨. (과거 이 버그 한 번 잡음 — 리팩터 시 깨지 말 것)
 - `drive.js`는 refresh token 없으면 `DRIVE_NOT_LINKED` throw → upload 라우트가 409 `drive_not_linked`로 변환.
-- 업로드는 multer 2.x, 메모리 스토리지, image/audio MIME 화이트리스트.
+- 업로드는 multer 2.x, **디스크 스토리지**(`os.tmpdir()`, 요청 후 임시파일 정리), image/audio MIME 화이트리스트. `drive.uploadFile`이 `fs.createReadStream`으로 **스트리밍 업로드**(메모리 OOM 방지 — 과거 memoryStorage였음).
 - 이미지 안 보이면 대개 raw 프록시 또는 드라이브 미연결 문제. 공개 URL 아님을 기억.
 - 비밀값(`.env`)·`node_modules`·`data/*.db`는 커밋/패키지 제외.
 
@@ -81,10 +81,12 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS, 구 base.css 통�
 
 **검증 완료(실 자격증명, 2026-06-16)**: 실제 OAuth 토큰 교환·refresh token 암호화 저장(`driveLinked:true`), 이미지 업로드→Drive 적재→raw 프록시 스트리밍→삭제 end-to-end. (Safari는 localhost를 https로 강제 업그레이드하니 로그인은 Chrome/Firefox 권장.)
 
+**프로덕션 검증(2026-06-16)**: Render 운영 URL에서 OAuth 로그인·`driveLinked:true`·가용성 안정(무중단 재배포, `x-render-routing: no-server` 해소) 확인. 디스크 스트리밍 업로드는 로컬 실 Drive로 end-to-end 검증.
+
 ## TODO (우선순위)
 
 1. ~~Tailwind Play-CDN → 빌드 스텝 전환~~ ✅ 완료 (Tailwind CLI v3, `npm run build:css`, prestart 자동 빌드).
 2. ~~실제 OAuth 클라이언트로 토큰 교환 + 드라이브 업로드 실동작 확인.~~ ✅ 완료 (2026-06-16, end-to-end 검증).
 3. 오디오 업로드(`portfolio_audio`) 프론트 UI 마무리 — 백엔드는 이미 지원.
-4. 배포 — Render Blueprint(`render.yaml`) + `.node-version`(22) 작성 완료. `config.js`가 `RENDER_EXTERNAL_URL`→`BASE_URL` 자동 도출. SQLite 영속 위해 Starter+Disk(유료). **실배포는 사용자 액션**(시크릿 입력 + 운영 redirect URI 추가). 절차는 README §3.5.
+4. ~~배포~~ ✅ 완료 (2026-06-16). **Render Starter+Disk(Singapore)** 운영: **https://vozong-portfolio.onrender.com** (GitHub: vozong-git/vozong-portfolio, main 브랜치, Blueprint 자동배포). `config.js`가 `RENDER_EXTERNAL_URL`→`BASE_URL` 자동 도출, `.node-version`=22. **안정화**: `app.listen('0.0.0.0')`로 포트 즉시 감지(무중단 재배포), 전역 에러 핸들러, 업로드 디스크 스트리밍(OOM 방지), `MAX_UPLOAD_MB`=100. ⚠️ Render 서비스 slug(=URL)는 생성 후 불변 — 바꾸려면 서비스 재생성 필요.
 5. (선택) 이미지 썸네일 생성으로 raw 프록시 대역폭 절감, 정렬·페이지네이션, SEO 메타.

@@ -97,6 +97,9 @@ npm start          # → http://localhost:8080  (start 전 prestart가 CSS를 �
 
 ## 3.5 배포 (Render)
 
+> ✅ **운영 중**: <https://vozong-portfolio.onrender.com> — Render **Starter + Persistent Disk**(Singapore), GitHub `vozong-git/vozong-portfolio`(main) Blueprint 자동배포.
+> 안정성을 위해 `app.listen('0.0.0.0')`(포트 즉시 감지·무중단 재배포), 전역 에러 핸들러, 업로드 디스크 스트리밍(OOM 방지)이 적용돼 있습니다.
+
 SQLite 파일 DB를 쓰므로 **영속 디스크(Persistent Disk)** 가 필요합니다 → Render **Starter(유료)** 플랜.
 저장소에 포함된 `render.yaml`(Blueprint)이 web 서비스 + 디스크 + 환경변수를 정의합니다.
 
