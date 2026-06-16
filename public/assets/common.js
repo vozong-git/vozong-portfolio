@@ -49,7 +49,7 @@ const SN = {
   /* Studio project card (matches Stitch export markup) */
   projectCard(p) {
     const cover = p.cover_url
-      ? `<img alt="${SN.escape(p.title)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${p.cover_url}"/>`
+      ? `<img alt="${SN.escape(p.title)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${p.cover_url}?thumb=200"/>`
       : `<div class="w-full h-full flex items-center justify-center text-outline"><span class="material-symbols-outlined">graphic_eq</span></div>`;
     const tags = (p.tags && p.tags.length)
       ? p.tags.map(SN.tagChip).join('')

@@ -167,7 +167,7 @@
     const thumbs = images.length > 1
       ? `<div class="grid grid-cols-5 gap-2">${images.map(a => `
           <button data-img="${a.url}" class="aspect-square bg-surface-container-lowest border border-outline-variant rounded overflow-hidden hover:border-primary-fixed-dim transition-colors">
-            <img src="${a.url}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover"/></button>`).join('')}</div>`
+            <img src="${a.url}?thumb=160" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover"/></button>`).join('')}</div>`
       : '';
     const audioBlock = audios.length
       ? `<div class="flex flex-col gap-2">${audios.map(a => `

@@ -1,4 +1,5 @@
 'use strict';
+const { Readable } = require('stream');
 const express = require('express');
 const db = require('../db');
 const drive = require('../drive');
@@ -19,6 +20,20 @@ router.get('/:id/raw', async (req, res) => {
   // hide assets of unpublished projects from non-admins
   const isAdmin = req.user && req.user.role === 'admin';
   if (asset.project_status !== 'published' && !isAdmin) return res.status(404).end();
+
+  // thumbnail (images only): best-effort Drive thumbnail, falls back to full image
+  const thumb = parseInt(req.query.thumb, 10);
+  if (thumb && asset.kind === 'image' && [120, 160, 200, 320, 400].includes(thumb)) {
+    try {
+      const t = await drive.getThumbnail(asset.drive_file_id, thumb);
+      if (t) {
+        res.setHeader('Content-Type', t.contentType);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        Readable.fromWeb(t.body).pipe(res);
+        return;
+      }
+    } catch (_) { /* fall through to full image */ }
+  }
 
   try {
     const { stream, meta } = await drive.getFileStream(asset.drive_file_id);

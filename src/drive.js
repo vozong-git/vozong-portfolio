@@ -127,6 +127,21 @@ async function getFileStream(fileId) {
   return { stream: media.data, meta: meta.data };
 }
 
+/** Fetch a Drive-generated thumbnail (small JPEG) for an image file.
+ *  Returns { body (web stream), contentType } or null if unavailable. */
+async function getThumbnail(fileId, size) {
+  const client = oauthClient(true);
+  const drive = google.drive({ version: 'v3', auth: client });
+  const { data } = await drive.files.get({ fileId, fields: 'thumbnailLink' });
+  if (!data.thumbnailLink) return null;
+  // thumbnailLink ends with a size hint like "=s220"; bump it to the requested size
+  const url = data.thumbnailLink.replace(/=s\d+(-[a-z0-9]+)*$/i, `=s${size}`);
+  const { token } = await client.getAccessToken();
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok || !res.body) return null;
+  return { body: res.body, contentType: res.headers.get('content-type') || 'image/jpeg' };
+}
+
 /** Permanently delete a Drive file (best-effort). */
 async function deleteFile(fileId) {
   try {
@@ -138,5 +153,5 @@ async function deleteFile(fileId) {
 }
 
 module.exports = {
-  authUrl, exchangeCode, ensureFolder, uploadFile, getFileStream, deleteFile, oauthClient,
+  authUrl, exchangeCode, ensureFolder, uploadFile, getFileStream, getThumbnail, deleteFile, oauthClient,
 };
