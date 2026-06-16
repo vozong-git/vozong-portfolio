@@ -113,9 +113,7 @@
       <td class="p-4 ${typeColor}">${SN.escape(SN.catLabel(p))}</td>
       <td class="p-4">${statusChip(p.status)}</td>
       <td class="p-4 text-right whitespace-nowrap">
-        <button data-act="up" title="Move up" class="text-outline hover:text-primary-fixed-dim transition-colors"><span class="material-symbols-outlined text-[18px]">arrow_upward</span></button>
-        <button data-act="down" title="Move down" class="text-outline hover:text-primary-fixed-dim transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">arrow_downward</span></button>
-        <button data-act="toggle" title="Toggle publish" class="text-outline hover:text-success transition-colors ml-2"><span class="material-symbols-outlined text-[18px]">${p.status === 'published' ? 'toggle_on' : 'toggle_off'}</span></button>
+        <button data-act="toggle" title="Toggle publish" class="text-outline hover:text-success transition-colors"><span class="material-symbols-outlined text-[18px]">${p.status === 'published' ? 'toggle_on' : 'toggle_off'}</span></button>
         <button data-act="edit" title="Edit" class="text-outline hover:text-primary-fixed-dim transition-colors ml-2"><span class="material-symbols-outlined text-[18px]">edit</span></button>
         <button data-act="del" title="Delete" class="text-outline hover:text-error transition-colors ml-2"><span class="material-symbols-outlined text-[18px]">delete</span></button>
       </td>
@@ -151,14 +149,6 @@
     const tr = btn.closest('tr'); const id = tr.dataset.id; const act = btn.dataset.act;
     try {
       if (act === 'edit') { location.href = `/project-form.html?id=${id}`; return; }
-      if (act === 'up' || act === 'down') {
-        const ids = [...tbody.querySelectorAll('tr[data-id]')].map(r => r.dataset.id);
-        const i = ids.indexOf(id); const j = act === 'up' ? i - 1 : i + 1;
-        if (j < 0 || j >= ids.length) return;
-        [ids[i], ids[j]] = [ids[j], ids[i]];
-        await Promise.all(ids.map((pid, idx) => SN.api('PATCH', `/api/projects/${pid}`, { sort_order: idx })));
-        SN.toast('Reordered'); load(); return;
-      }
       if (act === 'toggle') {
         const isPub = tr.querySelector('[data-act="toggle"] .material-symbols-outlined').textContent === 'toggle_on';
         await SN.api('PATCH', `/api/projects/${id}`, { status: isPub ? 'draft' : 'published' });
