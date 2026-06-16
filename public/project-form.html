@@ -10,7 +10,7 @@
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
 
-<nav class="hidden md:flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50">
+<nav id="sideNav" class="flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50 -translate-x-full md:translate-x-0 transition-transform duration-200">
   <div class="px-4 mb-8">
     <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim whitespace-nowrap">Kim, Bojong</h1>
     <p class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-2">Senior Technical Director</p>
@@ -61,12 +61,13 @@
       <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
         <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">tune</span> Technical Specifications</h3>
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Work Category Routing</label>
-        <div id="catGroup" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 mb-4">
-          <button type="button" data-cat="studio"   class="cat-btn">Studio Mix</button>
-          <button type="button" data-cat="master"   class="cat-btn">Master</button>
+        <div id="catGroup" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 mb-2">
+          <button type="button" data-cat="studio"   class="cat-btn">Studio Work</button>
           <button type="button" data-cat="live"     class="cat-btn">Live Sound</button>
           <button type="button" data-cat="playback" class="cat-btn">Playback</button>
+          <button type="button" data-cat="custom"   class="cat-btn">Custom</button>
         </div>
+        <input id="f_custom_cat" placeholder="Custom category name" hidden class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
 
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Tags (comma separated)</label>
         <input id="f_tags" placeholder="MIXING, MASTERING" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
@@ -86,7 +87,7 @@
         <div id="dropZone" class="border-2 border-dashed border-outline-variant rounded-lg p-6 flex flex-col items-center text-center cursor-pointer hover:border-primary-fixed-dim transition-colors">
           <span class="material-symbols-outlined text-3xl text-primary-fixed-dim mb-2">backup</span>
           <p class="font-metadata-sm text-metadata-sm text-on-surface">Drag &amp; Drop Reference Files</p>
-          <p class="font-label-caps text-[10px] text-outline mt-1">WAV, AIF, MP3, PNG, JPG (MAX 500MB)</p>
+          <p class="font-label-caps text-[10px] text-outline mt-1">WAV, AIF, MP3, PNG, JPG (MAX 100MB)</p>
           <button type="button" id="browseBtn" class="mt-4 border border-outline-variant rounded px-4 py-2 font-label-caps text-label-caps text-on-surface-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim transition-colors">Browse Terminal</button>
           <input id="fileInput" type="file" multiple accept=".wav,.aif,.aiff,.mp3,.png,.jpg,.jpeg,.webp,.gif,image/*,audio/*" hidden/>
         </div>
@@ -134,6 +135,7 @@
   function setCategory(c) {
     category = c;
     document.querySelectorAll('.cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === c));
+    $('f_custom_cat').hidden = (c !== 'custom');
   }
   document.getElementById('catGroup').addEventListener('click', e => {
     const b = e.target.closest('.cat-btn'); if (b) setCategory(b.dataset.cat);
@@ -181,6 +183,7 @@
       $('f_specs').value = p.technical_specs || '';
       $('f_desc').value = p.description || '';
       $('f_status').value = p.status || 'draft';
+      $('f_custom_cat').value = p.custom_category || '';
       setCategory(p.category || 'studio');
       renderExisting(p.assets || []);
     } catch (e) { SN.toast(e.message, 'err'); }
@@ -219,12 +222,16 @@
   $('submitBtn').addEventListener('click', async () => {
     const title = $('f_title').value.trim();
     if (!title) { SN.toast('Project Title is required', 'err'); $('f_title').focus(); return; }
+    if (category === 'custom' && !$('f_custom_cat').value.trim()) {
+      SN.toast('Custom category name is required', 'err'); $('f_custom_cat').focus(); return;
+    }
 
     const payload = {
       title,
       client_name: $('f_client').value.trim(),
       completion_date: $('f_date').value || null,
       category,
+      custom_category: category === 'custom' ? $('f_custom_cat').value.trim() : null,
       tags: $('f_tags').value,
       technical_specs: $('f_specs').value.trim(),
       description: $('f_desc').value.trim(),

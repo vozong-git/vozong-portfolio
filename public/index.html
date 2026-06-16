@@ -11,7 +11,7 @@
 <body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
 
 <!-- SideNav -->
-<nav class="hidden md:flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50">
+<nav id="sideNav" class="flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50 -translate-x-full md:translate-x-0 transition-transform duration-200">
   <div class="px-4 mb-8">
     <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim whitespace-nowrap">Kim, Bojong</h1>
     <p class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-2">Senior Technical Director</p>
@@ -21,7 +21,7 @@
       <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">dashboard</span>
       <span class="font-label-caps text-label-caps">Overview</span></a>
     <a data-cat="studio" class="nav-item text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all duration-150 inner-glow" href="#">
-      <span class="material-symbols-outlined">equalizer</span><span class="font-label-caps text-label-caps">Mix/Master</span></a>
+      <span class="material-symbols-outlined">equalizer</span><span class="font-label-caps text-label-caps">Studio Work</span></a>
     <a data-cat="playback" class="nav-item text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all duration-150 inner-glow" href="#">
       <span class="material-symbols-outlined">settings_voice</span><span class="font-label-caps text-label-caps">Playback</span></a>
     <a data-cat="live" class="nav-item text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all duration-150 inner-glow" href="#">

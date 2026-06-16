@@ -1,6 +1,6 @@
 /* Studio Noir — shared client helpers */
 const SN = {
-  CATEGORY_LABELS: { studio: 'Studio Mix', master: 'Master', live: 'Live Sound', playback: 'Playback', custom: 'Custom' },
+  CATEGORY_LABELS: { studio: 'Studio Work', live: 'Live Sound', playback: 'Playback', custom: 'Custom' },
 
   async api(method, url, body, isForm = false) {
     const opts = { method, headers: {}, credentials: 'same-origin' };
@@ -79,4 +79,30 @@ const SN = {
       </div>
     </div>`;
   },
+
+  /* mobile off-canvas sidebar: inject a hamburger + overlay, wire toggling */
+  initSidebar() {
+    const nav = document.getElementById('sideNav');
+    if (!nav || document.getElementById('navToggle')) return;
+    const btn = document.createElement('button');
+    btn.id = 'navToggle';
+    btn.setAttribute('aria-label', 'Toggle navigation');
+    btn.className = 'md:hidden fixed top-3 right-3 z-[60] bg-surface-container border border-outline-variant rounded p-2 text-primary-fixed-dim inner-glow';
+    btn.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+    const overlay = document.createElement('div');
+    overlay.id = 'navOverlay';
+    overlay.className = 'md:hidden fixed inset-0 bg-background/70 z-40 opacity-0 pointer-events-none transition-opacity duration-200';
+    document.body.append(btn, overlay);
+    const close = () => { nav.classList.add('-translate-x-full'); overlay.classList.add('opacity-0', 'pointer-events-none'); };
+    const open = () => { nav.classList.remove('-translate-x-full'); overlay.classList.remove('opacity-0', 'pointer-events-none'); };
+    btn.addEventListener('click', () => (nav.classList.contains('-translate-x-full') ? open() : close()));
+    overlay.addEventListener('click', close);
+    nav.addEventListener('click', (e) => { if (e.target.closest('a, button')) close(); });
+  },
 };
+
+// auto-init the mobile sidebar wherever a #sideNav exists (no-op elsewhere)
+if (typeof document !== 'undefined') {
+  if (document.readyState !== 'loading') SN.initSidebar();
+  else document.addEventListener('DOMContentLoaded', () => SN.initSidebar());
+}

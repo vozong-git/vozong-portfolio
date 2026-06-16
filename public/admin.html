@@ -10,7 +10,7 @@
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
 
-<nav class="hidden md:flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50">
+<nav id="sideNav" class="flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50 -translate-x-full md:translate-x-0 transition-transform duration-200">
   <div class="px-4 mb-8">
     <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim whitespace-nowrap">Kim, Bojong</h1>
     <p class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-2">Senior Technical Director</p>
@@ -94,7 +94,7 @@
   } catch (_) {}
 
   let filter = '';
-  const TYPE_COLOR = { live: 'text-secondary-container', master: 'text-tertiary-container' };
+  const TYPE_COLOR = { live: 'text-secondary-container', playback: 'text-tertiary-container' };
 
   function statusChip(s) {
     return s === 'published'
