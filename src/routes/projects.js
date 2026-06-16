@@ -24,6 +24,7 @@ function serialize(p) {
     tags: p.tags ? p.tags.split(',').map(s => s.trim()).filter(Boolean) : [],
     technical_specs: p.technical_specs,
     description: p.description,
+    youtube_url: p.youtube_url,
     status: p.status,
     sort_order: p.sort_order,
     created_at: p.created_at,
@@ -69,6 +70,7 @@ function validate(body, { partial = false } = {}) {
   }
   if (has('technical_specs')) out.technical_specs = (body.technical_specs ?? '').toString().trim() || null;
   if (has('description')) out.description = (body.description ?? '').toString().trim() || null;
+  if (has('youtube_url')) out.youtube_url = (body.youtube_url ?? '').toString().trim() || null;
   if (has('status')) {
     const s = (body.status || 'draft').toString().trim().toLowerCase();
     if (!STATUSES.includes(s)) errors.push(`status must be one of ${STATUSES.join(', ')}`);
@@ -122,9 +124,9 @@ router.post('/', requireAdmin, (req, res) => {
 
   const stmt = db.db.prepare(`
     INSERT INTO projects (title, client_name, completion_date, category, custom_category,
-                          tags, technical_specs, description, status, sort_order)
+                          tags, technical_specs, description, youtube_url, status, sort_order)
     VALUES (@title, @client_name, @completion_date, @category, @custom_category,
-            @tags, @technical_specs, @description, @status, @sort_order)
+            @tags, @technical_specs, @description, @youtube_url, @status, @sort_order)
   `);
   const info = stmt.run({
     title: value.title,
@@ -135,6 +137,7 @@ router.post('/', requireAdmin, (req, res) => {
     tags: value.tags ?? null,
     technical_specs: value.technical_specs ?? null,
     description: value.description ?? null,
+    youtube_url: value.youtube_url ?? null,
     status: value.status ?? 'draft',
     sort_order: value.sort_order ?? 0,
   });

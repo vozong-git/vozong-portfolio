@@ -76,7 +76,10 @@
         <input id="f_specs" placeholder="SSL 4000G, Pro Tools HDX, Neve 1073" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
 
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Project Description / Technical Notes</label>
-        <textarea id="f_desc" rows="4" placeholder="Enter routing notes, specific plugin chains, or client feedback…" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"></textarea>
+        <textarea id="f_desc" rows="4" placeholder="Enter routing notes, specific plugin chains, or client feedback…" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"></textarea>
+
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">YouTube Link (optional)</label>
+        <input id="f_youtube" placeholder="https://youtu.be/…  or  https://www.youtube.com/watch?v=…" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
       </section>
     </div>
 
@@ -182,6 +185,7 @@
       $('f_tags').value = (p.tags || []).join(', ');
       $('f_specs').value = p.technical_specs || '';
       $('f_desc').value = p.description || '';
+      $('f_youtube').value = p.youtube_url || '';
       $('f_status').value = p.status || 'draft';
       $('f_custom_cat').value = p.custom_category || '';
       setCategory(p.category || 'studio');
@@ -235,6 +239,7 @@
       tags: $('f_tags').value,
       technical_specs: $('f_specs').value.trim(),
       description: $('f_desc').value.trim(),
+      youtube_url: $('f_youtube').value.trim(),
       status: $('f_status').value,
     };
 

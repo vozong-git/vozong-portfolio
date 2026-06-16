@@ -126,6 +126,12 @@
     if (thumb) { const m = document.getElementById('detailMain'); if (m) m.src = thumb.dataset.img; }
   });
 
+  function ytId(url) {
+    if (!url) return null;
+    const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
+    return m ? m[1] : null;
+  }
+
   async function openDetail(id) {
     area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>`;
     try {
@@ -140,6 +146,10 @@
   function detailView(p) {
     const images = (p.assets || []).filter(a => a.kind === 'image');
     const audios = (p.assets || []).filter(a => a.kind === 'audio');
+    const yt = ytId(p.youtube_url);
+    const ytBlock = yt
+      ? `<div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe src="https://www.youtube-nocookie.com/embed/${yt}" class="w-full h-full" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
+      : '';
     const mainSrc = p.cover_url || (images[0] && images[0].url) || '';
     const gallery = mainSrc
       ? `<img id="detailMain" src="${mainSrc}" alt="${SN.escape(p.title)}" class="w-full h-full object-contain"/>`
@@ -171,6 +181,7 @@
         </button>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-md">
           <div class="lg:col-span-2 flex flex-col gap-4">
+            ${ytBlock}
             <div class="aspect-video bg-surface-container-lowest border border-outline-variant rounded inner-glow overflow-hidden flex items-center justify-center">${gallery}</div>
             ${thumbs}
             ${audioBlock}

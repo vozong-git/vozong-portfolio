@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS projects (
   tags            TEXT,                              -- comma list, e.g. "MIXING,MASTERING"
   technical_specs TEXT,                              -- Hardware/Software deployment
   description     TEXT,                              -- technical notes
+  youtube_url     TEXT,                              -- optional YouTube video link
   status          TEXT    NOT NULL DEFAULT 'draft'
                     CHECK (status IN ('draft','published')),
   sort_order      INTEGER NOT NULL DEFAULT 0,
@@ -73,6 +74,11 @@ CREATE TABLE IF NOT EXISTS admin_state (
 
 function init() {
   open().exec(SCHEMA);
+  // migration: projects.youtube_url added later
+  const cols = db.prepare('PRAGMA table_info(projects)').all();
+  if (!cols.some((c) => c.name === 'youtube_url')) {
+    db.exec('ALTER TABLE projects ADD COLUMN youtube_url TEXT');
+  }
   return db;
 }
 
