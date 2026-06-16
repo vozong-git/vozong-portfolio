@@ -4,8 +4,14 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Kim, Bojong — Sound Engineer Portfolio</title>
+<meta name="description" content="Kim, Bojong — Senior Technical Director. Studio mixing, playback, and live sound engineering portfolio."/>
+<meta name="theme-color" content="#131313"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Kim, Bojong — Sound Engineer Portfolio"/>
+<meta property="og:description" content="Studio mixing, playback, and live sound engineering portfolio."/>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <link href="/assets/app.css" rel="stylesheet"/>
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
@@ -118,6 +124,11 @@
   });
 
   // ── project detail (open on card click, return via Back) ──
+  area.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('article[data-id]');
+    if (card) { e.preventDefault(); openDetail(card.dataset.id); }
+  });
   area.addEventListener('click', (e) => {
     const card = e.target.closest('article[data-id]');
     if (card) { openDetail(card.dataset.id); return; }
@@ -157,7 +168,7 @@
     const thumbs = images.length > 1
       ? `<div class="grid grid-cols-5 gap-2">${images.map(a => `
           <button data-img="${a.url}" class="aspect-square bg-surface-container-lowest border border-outline-variant rounded overflow-hidden hover:border-primary-fixed-dim transition-colors">
-            <img src="${a.url}" alt="" class="w-full h-full object-cover"/></button>`).join('')}</div>`
+            <img src="${a.url}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover"/></button>`).join('')}</div>`
       : '';
     const audioBlock = audios.length
       ? `<div class="flex flex-col gap-2">${audios.map(a => `

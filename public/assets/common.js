@@ -49,13 +49,13 @@ const SN = {
   /* Studio project card (matches Stitch export markup) */
   projectCard(p) {
     const cover = p.cover_url
-      ? `<img alt="${SN.escape(p.title)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${p.cover_url}"/>`
+      ? `<img alt="${SN.escape(p.title)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${p.cover_url}"/>`
       : `<div class="w-full h-full flex items-center justify-center text-outline"><span class="material-symbols-outlined">graphic_eq</span></div>`;
     const tags = (p.tags && p.tags.length)
       ? p.tags.map(SN.tagChip).join('')
       : SN.tagChip(SN.catLabel(p).toUpperCase());
     return `
-    <article data-id="${p.id}" class="bg-surface-container-high border border-outline-variant rounded p-4 hover:border-primary-fixed-dim transition-colors group flex gap-4 items-center cursor-pointer">
+    <article data-id="${p.id}" tabindex="0" role="button" aria-label="${SN.escape(p.title)}" class="bg-surface-container-high border border-outline-variant rounded p-4 hover:border-primary-fixed-dim focus:outline-none focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim transition-colors group flex gap-4 items-center cursor-pointer">
       <div class="w-20 h-20 bg-surface-container-lowest rounded overflow-hidden flex-shrink-0 relative">${cover}</div>
       <div class="flex flex-col gap-1 overflow-hidden">
         <span class="font-metadata-sm text-metadata-sm text-primary-fixed-dim truncate">${SN.escape(p.client_name || '—')}</span>
