@@ -40,4 +40,4 @@ services:
       - key: DRIVE_IMAGE_FOLDER
         value: portfolio_image
       - key: MAX_UPLOAD_MB
-        value: "500"
+        value: "100"

@@ -1,5 +1,5 @@
 'use strict';
-const { Readable } = require('stream');
+const fs = require('fs');
 const { google } = require('googleapis');
 const config = require('./config');
 const db = require('./db');
@@ -103,13 +103,14 @@ async function ensureFolder(kind /* 'image' | 'audio' */) {
   return folderId;
 }
 
-/** Upload a buffer to the appropriate Drive folder. Returns {id, name}. */
-async function uploadBuffer({ buffer, name, mimeType, kind }) {
+/** Stream a file from disk to the appropriate Drive folder. Returns {id, name}.
+ *  Streaming (vs. buffering in memory) keeps RAM flat regardless of file size. */
+async function uploadFile({ filePath, name, mimeType, kind }) {
   const folderId = await ensureFolder(kind);
   const drive = driveClient();
   const res = await drive.files.create({
     requestBody: { name, parents: [folderId] },
-    media: { mimeType, body: Readable.from(buffer) },
+    media: { mimeType, body: fs.createReadStream(filePath) },
     fields: 'id,name',
   });
   return res.data;
@@ -137,5 +138,5 @@ async function deleteFile(fileId) {
 }
 
 module.exports = {
-  authUrl, exchangeCode, ensureFolder, uploadBuffer, getFileStream, deleteFile, oauthClient,
+  authUrl, exchangeCode, ensureFolder, uploadFile, getFileStream, deleteFile, oauthClient,
 };

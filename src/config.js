@@ -48,7 +48,7 @@ const config = {
     audioFolder: req('DRIVE_AUDIO_FOLDER') || '',
   },
 
-  maxUploadBytes: (parseInt(process.env.MAX_UPLOAD_MB || '500', 10)) * 1024 * 1024,
+  maxUploadBytes: (parseInt(process.env.MAX_UPLOAD_MB || '100', 10)) * 1024 * 1024,
 
   dbPath: path.resolve(process.cwd(), process.env.DB_PATH || './data/portfolio.db'),
 

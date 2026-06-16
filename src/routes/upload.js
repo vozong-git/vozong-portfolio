@@ -1,4 +1,6 @@
 'use strict';
+const os = require('os');
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const multer = require('multer');
@@ -16,8 +18,15 @@ const AUDIO_MIMES = new Set([
   'audio/mpeg', 'audio/mp3',
 ]);
 
+// Disk storage (NOT memory): files are streamed to a temp file, then streamed
+// to Drive — RAM stays flat regardless of file size, so large uploads can't OOM
+// the instance. Temp files are removed after every request.
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, os.tmpdir()),
+    filename: (_req, file, cb) =>
+      cb(null, `upload_${Date.now()}_${Math.random().toString(16).slice(2)}${path.extname(file.originalname || '')}`),
+  }),
   limits: { fileSize: config.maxUploadBytes, files: 12 },
   fileFilter: (_req, file, cb) => {
     const m = (file.mimetype || '').toLowerCase();
@@ -37,22 +46,31 @@ function safeName(original) {
   return `${base || 'file'}_${stamp}${ext}`;
 }
 
+// best-effort removal of the temp files multer wrote for this request
+function cleanupTempFiles(files) {
+  for (const f of files || []) {
+    if (f && f.path) fs.promises.unlink(f.path).catch(() => {});
+  }
+}
+
 // POST /api/upload   (admin)
 // multipart/form-data:  project_id (required), files[] (1..12), cover (optional file_name to flag)
 router.post('/', requireAdmin, (req, res) => {
   upload.array('files', 12)(req, res, async (err) => {
     if (err) {
+      cleanupTempFiles(req.files);
       const code = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
       return res.status(code).json({ error: 'upload_failed', message: err.message });
     }
     const projectId = parseInt(req.body.project_id, 10);
-    if (!projectId) return res.status(400).json({ error: 'project_id required' });
+    if (!projectId) { cleanupTempFiles(req.files); return res.status(400).json({ error: 'project_id required' }); }
     const project = db.db.prepare('SELECT id FROM projects WHERE id = ?').get(projectId);
-    if (!project) return res.status(404).json({ error: 'project_not_found' });
+    if (!project) { cleanupTempFiles(req.files); return res.status(404).json({ error: 'project_not_found' }); }
     if (!req.files || !req.files.length) return res.status(400).json({ error: 'no_files' });
 
     // audio uploads only allowed if an audio folder is configured
     if (!config.drive.audioFolder && req.files.some(f => kindFor(f.mimetype) === 'audio')) {
+      cleanupTempFiles(req.files);
       return res.status(400).json({ error: 'audio_disabled', message: 'DRIVE_AUDIO_FOLDER not set' });
     }
 
@@ -61,8 +79,8 @@ router.post('/', requireAdmin, (req, res) => {
       for (const file of req.files) {
         const kind = kindFor(file.mimetype);
         const name = safeName(file.originalname);
-        const driveFile = await drive.uploadBuffer({
-          buffer: file.buffer,
+        const driveFile = await drive.uploadFile({
+          filePath: file.path,
           name,
           mimeType: file.mimetype,
           kind,
@@ -81,6 +99,8 @@ router.post('/', requireAdmin, (req, res) => {
       }
       console.error('[upload]', e?.message || e);
       return res.status(502).json({ error: 'drive_upload_failed', message: e?.message });
+    } finally {
+      cleanupTempFiles(req.files);
     }
     res.status(201).json({ uploaded: created });
   });
