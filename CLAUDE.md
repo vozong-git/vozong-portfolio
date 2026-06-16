@@ -79,12 +79,12 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS, 구 base.css 통�
 
 더미 자격증명으로 부팅해 확인 완료: health, published 필터(draft 숨김), 비인증 401, `/admin` 302, OAuth 리다이렉트(스코프·offline·consent·redirect_uri), 관리자 JWT로 생성/날짜검증400/업로드409/MIME400.
 
-**미검증(실 자격증명 필요)**: 실제 OAuth 토큰 교환, 실제 드라이브 업로드.
+**검증 완료(실 자격증명, 2026-06-16)**: 실제 OAuth 토큰 교환·refresh token 암호화 저장(`driveLinked:true`), 이미지 업로드→Drive 적재→raw 프록시 스트리밍→삭제 end-to-end. (Safari는 localhost를 https로 강제 업그레이드하니 로그인은 Chrome/Firefox 권장.)
 
 ## TODO (우선순위)
 
 1. ~~Tailwind Play-CDN → 빌드 스텝 전환~~ ✅ 완료 (Tailwind CLI v3, `npm run build:css`, prestart 자동 빌드).
-2. 실제 OAuth 클라이언트로 토큰 교환 + 드라이브 업로드 실동작 확인.
+2. ~~실제 OAuth 클라이언트로 토큰 교환 + 드라이브 업로드 실동작 확인.~~ ✅ 완료 (2026-06-16, end-to-end 검증).
 3. 오디오 업로드(`portfolio_audio`) 프론트 UI 마무리 — 백엔드는 이미 지원.
 4. 배포(HTTPS, 실 도메인으로 `BASE_URL`·redirect URI 갱신).
 5. (선택) 이미지 썸네일 생성으로 raw 프록시 대역폭 절감, 정렬·페이지네이션, SEO 메타.
