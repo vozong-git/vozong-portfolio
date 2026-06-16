@@ -53,7 +53,7 @@
           </div>
           <div>
             <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Target Completion Date</label>
-            <input id="f_date" type="date" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface focus:border-primary-fixed-dim focus:ring-0"/>
+            <input id="f_date" type="date" min="1900-01-01" max="2099-12-31" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface focus:border-primary-fixed-dim focus:ring-0"/>
           </div>
         </div>
       </section>
@@ -89,7 +89,7 @@
         <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">cloud_upload</span> Media Ingestion</h3>
         <div id="dropZone" class="border-2 border-dashed border-outline-variant rounded-lg p-6 flex flex-col items-center text-center cursor-pointer hover:border-primary-fixed-dim transition-colors">
           <span class="material-symbols-outlined text-3xl text-primary-fixed-dim mb-2">backup</span>
-          <p class="font-metadata-sm text-metadata-sm text-on-surface">Drag &amp; Drop Reference Files</p>
+          <p class="font-metadata-sm text-metadata-sm text-on-surface">Drag &amp; Drop, or Paste (⌘V / Ctrl+V)</p>
           <p class="font-label-caps text-[10px] text-outline mt-1">WAV, AIF, MP3, PNG, JPG (MAX 100MB)</p>
           <button type="button" id="browseBtn" class="mt-4 border border-outline-variant rounded px-4 py-2 font-label-caps text-label-caps text-on-surface-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim transition-colors">Browse Terminal</button>
           <input id="fileInput" type="file" multiple accept=".wav,.aif,.aiff,.mp3,.png,.jpg,.jpeg,.webp,.gif,image/*,audio/*" hidden/>
@@ -147,8 +147,22 @@
 
   // ── file picking / drag&drop ──
   const dz = $('dropZone'), input = $('fileInput'), list = $('fileList');
-  $('browseBtn').addEventListener('click', () => input.click());
-  dz.addEventListener('click', (e) => { if (e.target === dz || e.target.tagName === 'P' || e.target.tagName === 'SPAN') input.click(); });
+  // Browse Terminal → file picker
+  $('browseBtn').addEventListener('click', (e) => { e.stopPropagation(); input.click(); });
+  // clicking the drop zone arms clipboard paste (does not open the picker)
+  dz.addEventListener('click', (e) => {
+    if (e.target.closest('#browseBtn')) return;
+    dz.classList.add('border-primary-fixed-dim');
+    SN.toast('Copy an image, then paste with ⌘V / Ctrl+V');
+  });
+  // paste files/images from the clipboard
+  document.addEventListener('paste', (e) => {
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    const files = [];
+    for (const it of items) if (it.kind === 'file') { const f = it.getAsFile(); if (f) files.push(f); }
+    if (files.length) { e.preventDefault(); addFiles(files); dz.classList.remove('border-primary-fixed-dim'); SN.toast(`${files.length} file(s) added from clipboard`); }
+  });
+  // drag & drop (unchanged)
   ['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('border-primary-fixed-dim'); }));
   ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('border-primary-fixed-dim'); }));
   dz.addEventListener('drop', e => addFiles(e.dataTransfer.files));

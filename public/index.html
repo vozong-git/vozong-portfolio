@@ -148,7 +148,7 @@
     const audios = (p.assets || []).filter(a => a.kind === 'audio');
     const yt = ytId(p.youtube_url);
     const ytBlock = yt
-      ? `<div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe src="https://www.youtube-nocookie.com/embed/${yt}" class="w-full h-full" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
+      ? `<div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe src="https://www.youtube.com/embed/${yt}" class="w-full h-full" title="YouTube video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
       : '';
     const mainSrc = p.cover_url || (images[0] && images[0].url) || '';
     const gallery = mainSrc
