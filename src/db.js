@@ -54,8 +54,20 @@ CREATE TABLE IF NOT EXISTS timeline (
   venue      TEXT,                                   -- e.g. "Red Rocks Amphitheatre"
   period     TEXT,                                   -- e.g. "Oct 2023 - Present"
   is_current INTEGER NOT NULL DEFAULT 0,
+  kind       TEXT    NOT NULL DEFAULT 'live'         -- live|playback
+               CHECK (kind IN ('live','playback')),
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+-- single-row table holding public contact details (editable in admin)
+CREATE TABLE IF NOT EXISTS contact (
+  id         INTEGER PRIMARY KEY CHECK (id = 1),
+  email      TEXT,
+  phone      TEXT,
+  location   TEXT,
+  headline   TEXT,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- single-row table holding the admin's Drive credentials + cached folder ids
@@ -73,6 +85,11 @@ CREATE TABLE IF NOT EXISTS admin_state (
 
 function init() {
   open().exec(SCHEMA);
+  // migration: older DBs created before timeline.kind existed
+  const cols = db.prepare('PRAGMA table_info(timeline)').all();
+  if (!cols.some((c) => c.name === 'kind')) {
+    db.exec("ALTER TABLE timeline ADD COLUMN kind TEXT NOT NULL DEFAULT 'live'");
+  }
   return db;
 }
 
@@ -139,9 +156,27 @@ function setFolderId(kind, folderId) {
   db.prepare(`UPDATE admin_state SET ${col} = ?, updated_at = datetime('now') WHERE id = 1`).run(folderId);
 }
 
+/* ── contact (single row) ── */
+function getContact() {
+  open();
+  return db.prepare('SELECT email, phone, location, headline, updated_at FROM contact WHERE id = 1').get() || null;
+}
+
+function saveContact({ email, phone, location, headline }) {
+  open();
+  const existing = db.prepare('SELECT id FROM contact WHERE id = 1').get();
+  const vals = [email ?? null, phone ?? null, location ?? null, headline ?? null];
+  if (existing) {
+    db.prepare(`UPDATE contact SET email = ?, phone = ?, location = ?, headline = ?, updated_at = datetime('now') WHERE id = 1`).run(...vals);
+  } else {
+    db.prepare(`INSERT INTO contact (id, email, phone, location, headline) VALUES (1, ?, ?, ?, ?)`).run(...vals);
+  }
+}
+
 module.exports = {
   open, init,
   get db() { return open(); },
   getAdminState, saveAdminIdentity, setFolderId,
+  getContact, saveContact,
   encrypt, decrypt,
 };

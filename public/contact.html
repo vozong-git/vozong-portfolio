@@ -11,12 +11,26 @@
 <body class="bg-background text-on-surface font-body-md min-h-screen flex items-center justify-center console-grid p-6">
   <div class="w-full max-w-lg bg-surface-container border border-outline-variant rounded-xl inner-glow p-8">
     <h1 class="font-display-lg text-headline-lg text-primary-fixed-dim">Kim, Bojong</h1>
-    <p class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-1 mb-6">Senior Technical Director · Mixing / Playback / Live Sound</p>
+    <p id="c_headline" class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-1 mb-6">Senior Technical Director · Mixing / Playback / Live Sound</p>
     <div class="flex flex-col gap-3 font-metadata-sm text-metadata-sm">
-      <a class="flex items-center gap-3 text-on-surface hover:text-primary-fixed-dim" href="mailto:contact@example.com"><span class="material-symbols-outlined text-primary-fixed-dim">mail</span> contact@example.com</a>
-      <div class="flex items-center gap-3 text-on-surface-variant"><span class="material-symbols-outlined text-primary-fixed-dim">location_on</span> Seoul, Republic of Korea</div>
+      <a id="c_email_row" hidden class="flex items-center gap-3 text-on-surface hover:text-primary-fixed-dim" href="#"><span class="material-symbols-outlined text-primary-fixed-dim">mail</span> <span id="c_email"></span></a>
+      <a id="c_phone_row" hidden class="flex items-center gap-3 text-on-surface hover:text-primary-fixed-dim" href="#"><span class="material-symbols-outlined text-primary-fixed-dim">call</span> <span id="c_phone"></span></a>
+      <div id="c_location_row" hidden class="flex items-center gap-3 text-on-surface-variant"><span class="material-symbols-outlined text-primary-fixed-dim">location_on</span> <span id="c_location"></span></div>
     </div>
     <a href="/" class="inline-flex items-center gap-1 mt-8 text-on-surface-variant hover:text-primary-fixed-dim font-metadata-sm text-metadata-sm"><span class="material-symbols-outlined text-sm">arrow_back</span> Back to portfolio</a>
   </div>
+  <script src="/assets/common.js"></script>
+  <script>
+  (async () => {
+    const $ = (id) => document.getElementById(id);
+    try {
+      const { contact } = await SN.api('GET', '/api/contact');
+      if (contact.headline) $('c_headline').textContent = contact.headline;
+      if (contact.email) { $('c_email').textContent = contact.email; $('c_email_row').href = 'mailto:' + contact.email; $('c_email_row').hidden = false; }
+      if (contact.phone) { $('c_phone').textContent = contact.phone; $('c_phone_row').href = 'tel:' + contact.phone.replace(/[^+\d]/g, ''); $('c_phone_row').hidden = false; }
+      if (contact.location) { $('c_location').textContent = contact.location; $('c_location_row').hidden = false; }
+    } catch (_) { /* keep static fallback */ }
+  })();
+  </script>
 </body>
 </html>

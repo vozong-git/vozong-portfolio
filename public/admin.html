@@ -20,6 +20,8 @@
       <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">dashboard</span><span class="font-label-caps text-label-caps">Overview</span></a>
     <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/project-form.html">
       <span class="material-symbols-outlined">add_circle</span><span class="font-label-caps text-label-caps">New Project</span></a>
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/contact-form.html">
+      <span class="material-symbols-outlined">contact_mail</span><span class="font-label-caps text-label-caps">Edit Contact</span></a>
     <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/" target="_blank">
       <span class="material-symbols-outlined">visibility</span><span class="font-label-caps text-label-caps">Public View</span></a>
   </div>
@@ -70,6 +72,27 @@
         </tbody>
       </table>
     </div>
+  </section>
+
+  <section class="flex flex-col gap-4 mt-stack-lg">
+    <div class="flex items-center justify-between border-b border-outline-variant pb-2">
+      <h3 class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">TIMELINE MANAGEMENT</h3>
+      <div class="flex gap-2" id="tlKindTabs">
+        <button data-k="live" class="tlk font-label-caps text-[10px] px-3 py-1 rounded text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim">LIVE SOUND</button>
+        <button data-k="playback" class="tlk font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">PLAYBACK</button>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 bg-surface-container border border-outline-variant rounded p-4 inner-glow">
+      <input id="tl_role" placeholder="Role * (e.g. FOH Engineer)" class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0 font-metadata-sm text-[11px]"/>
+      <input id="tl_venue" placeholder="Venue" class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0 font-metadata-sm text-[11px]"/>
+      <input id="tl_period" placeholder="Period (e.g. 2024-)" class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0 font-metadata-sm text-[11px]"/>
+      <div class="flex items-center gap-2">
+        <label class="flex items-center gap-1 font-metadata-sm text-[11px] text-on-surface-variant whitespace-nowrap"><input id="tl_current" type="checkbox" class="accent-primary-fixed-dim"/> Current</label>
+        <button id="tlSave" class="flex-1 bg-primary-fixed-dim text-on-primary-fixed font-label-caps text-[10px] py-2 rounded hover:opacity-90 transition-opacity">ADD</button>
+        <button id="tlCancel" hidden class="border border-outline-variant text-on-surface-variant font-label-caps text-[10px] px-2 py-2 rounded">✕</button>
+      </div>
+    </div>
+    <div id="tlList" class="flex flex-col gap-2"></div>
   </section>
 </main>
 
@@ -164,6 +187,74 @@
   });
 
   load();
+
+  // ── timeline management ──
+  const $$ = (id) => document.getElementById(id);
+  let tlKind = 'live';
+  let tlEditId = null;
+
+  function resetTl() {
+    tlEditId = null;
+    $$('tl_role').value = ''; $$('tl_venue').value = ''; $$('tl_period').value = ''; $$('tl_current').checked = false;
+    $$('tlSave').textContent = 'ADD'; $$('tlCancel').hidden = true;
+  }
+
+  async function loadTl() {
+    const { timeline } = await SN.api('GET', `/api/timeline?kind=${tlKind}`);
+    $$('tlList').innerHTML = timeline.length
+      ? timeline.map(t => `
+        <div class="flex items-center justify-between bg-surface-container border border-outline-variant rounded px-4 py-2" data-id="${t.id}">
+          <span class="font-metadata-sm text-metadata-sm text-on-surface truncate">
+            <span class="text-primary-fixed-dim">${SN.escape(t.role)}</span>${t.venue ? ' · ' + SN.escape(t.venue) : ''}${t.period ? ' <span class="text-outline">· ' + SN.escape(t.period) + '</span>' : ''}${t.is_current ? ' <span class="text-[9px] text-success">CURRENT</span>' : ''}
+          </span>
+          <span class="flex gap-1 flex-shrink-0">
+            <button data-tlact="edit" title="Edit" class="text-outline hover:text-primary-fixed-dim"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+            <button data-tlact="del" title="Delete" class="text-outline hover:text-error"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+          </span>
+        </div>`).join('')
+      : `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant px-1">No ${tlKind} entries yet.</p>`;
+  }
+
+  $$('tlKindTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.tlk'); if (!b) return;
+    tlKind = b.dataset.k;
+    document.querySelectorAll('.tlk').forEach(t => {
+      const on = t === b;
+      t.className = 'tlk font-label-caps text-[10px] px-3 py-1 rounded ' +
+        (on ? 'text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim'
+            : 'text-on-surface-variant border border-outline-variant');
+    });
+    resetTl(); loadTl();
+  });
+
+  $$('tlSave').addEventListener('click', async () => {
+    const role = $$('tl_role').value.trim();
+    if (!role) { SN.toast('Role is required', 'err'); $$('tl_role').focus(); return; }
+    const payload = { role, venue: $$('tl_venue').value.trim(), period: $$('tl_period').value.trim(), is_current: $$('tl_current').checked, kind: tlKind };
+    try {
+      if (tlEditId) await SN.api('PATCH', `/api/timeline/${tlEditId}`, payload);
+      else await SN.api('POST', '/api/timeline', payload);
+      SN.toast('Saved'); resetTl(); loadTl();
+    } catch (e) { SN.toast(e.message, 'err'); }
+  });
+  $$('tlCancel').addEventListener('click', resetTl);
+
+  $$('tlList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-tlact]'); if (!btn) return;
+    const id = btn.closest('[data-id]').dataset.id;
+    if (btn.dataset.tlact === 'del') {
+      if (!confirm('Delete this timeline entry?')) return;
+      try { await SN.api('DELETE', `/api/timeline/${id}`); SN.toast('Deleted'); loadTl(); } catch (err) { SN.toast(err.message, 'err'); }
+    } else {
+      const { timeline } = await SN.api('GET', `/api/timeline?kind=${tlKind}`);
+      const t = timeline.find(x => String(x.id) === String(id)); if (!t) return;
+      tlEditId = id;
+      $$('tl_role').value = t.role || ''; $$('tl_venue').value = t.venue || ''; $$('tl_period').value = t.period || ''; $$('tl_current').checked = !!t.is_current;
+      $$('tlSave').textContent = 'SAVE'; $$('tlCancel').hidden = false; $$('tl_role').focus();
+    }
+  });
+
+  loadTl();
 })();
 </script>
 </body>

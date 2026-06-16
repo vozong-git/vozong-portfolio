@@ -12,6 +12,7 @@ const projects = require('./src/routes/projects');
 const uploadRouter = require('./src/routes/upload');
 const assetsRouter = require('./src/routes/assets');
 const timelineRouter = require('./src/routes/timeline');
+const contactRouter = require('./src/routes/contact');
 
 db.init(); // ensure schema exists
 
@@ -50,6 +51,7 @@ app.use('/api/projects', apiLimiter, projects.router);
 app.use('/api/upload', apiLimiter, uploadRouter);
 app.use('/api/assets', apiLimiter, assetsRouter);
 app.use('/api/timeline', apiLimiter, timelineRouter);
+app.use('/api/contact', apiLimiter, contactRouter);
 
 app.get('/api/health', (_req, res) => {
   const linked = !!(db.getAdminState() && db.getAdminState().refresh_token);
@@ -67,6 +69,7 @@ function gateAdminPage(file) {
 }
 app.get(['/admin', '/admin.html'], gateAdminPage('admin.html'));
 app.get(['/new', '/project-form.html'], gateAdminPage('project-form.html'));
+app.get(['/contact-edit', '/contact-form.html'], gateAdminPage('contact-form.html'));
 
 // ── static frontend (public assets + non-gated pages) ──
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));

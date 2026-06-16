@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Contact — Kim, Bojong</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="/assets/app.css" rel="stylesheet"/>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
+
+<nav id="sideNav" class="flex flex-col h-full py-stack-md bg-surface-container fixed left-0 top-0 w-64 border-r border-outline-variant z-50 -translate-x-full md:translate-x-0 transition-transform duration-200">
+  <div class="px-4 mb-8">
+    <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim whitespace-nowrap">Kim, Bojong</h1>
+    <p class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-2">Senior Technical Director</p>
+  </div>
+  <div class="flex-1 overflow-y-auto flex flex-col gap-1">
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/admin.html">
+      <span class="material-symbols-outlined">dashboard</span><span class="font-label-caps text-label-caps">Overview</span></a>
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/project-form.html">
+      <span class="material-symbols-outlined">add_circle</span><span class="font-label-caps text-label-caps">New Project</span></a>
+    <a class="bg-primary-container/10 text-primary-fixed-dim border-l-4 border-primary-fixed-dim px-4 py-3 flex items-center gap-3" href="/contact-form.html">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">contact_mail</span><span class="font-label-caps text-label-caps">Edit Contact</span></a>
+  </div>
+  <div class="mt-auto px-4 pt-4 border-t border-outline-variant">
+    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/admin.html">
+      <span class="material-symbols-outlined">arrow_back</span><span class="font-label-caps text-label-caps">Back</span></a>
+  </div>
+</nav>
+
+<main class="flex-1 md:ml-64 p-gutter max-w-container-max mx-auto w-full">
+  <header class="mb-stack-lg">
+    <h2 class="font-display-lg text-headline-lg text-on-surface">Edit Contact</h2>
+    <p class="font-metadata-sm text-metadata-sm text-primary-fixed-dim mt-1">● PUBLIC CONTACT DETAILS</p>
+  </header>
+
+  <div class="max-w-lg">
+    <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow flex flex-col gap-4">
+      <div>
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Headline / Title</label>
+        <input id="c_headline" placeholder="Senior Technical Director · Mixing / Playback / Live Sound" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+      </div>
+      <div>
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Email</label>
+        <input id="c_email" type="email" placeholder="contact@example.com" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+      </div>
+      <div>
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Phone</label>
+        <input id="c_phone" placeholder="+82 10-0000-0000" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+      </div>
+      <div>
+        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Location</label>
+        <input id="c_location" placeholder="Seoul, Republic of Korea" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+      </div>
+      <button id="saveBtn" class="w-full bg-primary-fixed-dim text-on-primary-fixed font-label-caps text-label-caps py-3 rounded flex items-center justify-center gap-2 hover:opacity-90 transition-opacity glow-bloom mt-2">
+        <span class="material-symbols-outlined text-sm">save</span> <span id="saveLabel">SAVE CONTACT</span>
+      </button>
+      <a href="/contact.html" target="_blank" class="text-center font-metadata-sm text-metadata-sm text-on-surface-variant hover:text-primary-fixed-dim">Preview public contact ↗</a>
+    </section>
+  </div>
+</main>
+
+<script src="/assets/common.js"></script>
+<script>
+(async () => {
+  const me = await SN.me();
+  if (!me.isAdmin) { location.href = '/login.html'; return; }
+  const $ = (id) => document.getElementById(id);
+  try {
+    const { contact } = await SN.api('GET', '/api/contact');
+    $('c_headline').value = contact.headline || '';
+    $('c_email').value = contact.email || '';
+    $('c_phone').value = contact.phone || '';
+    $('c_location').value = contact.location || '';
+  } catch (e) { SN.toast(e.message, 'err'); }
+
+  $('saveBtn').addEventListener('click', async () => {
+    const payload = {
+      headline: $('c_headline').value.trim(),
+      email: $('c_email').value.trim(),
+      phone: $('c_phone').value.trim(),
+      location: $('c_location').value.trim(),
+    };
+    const btn = $('saveBtn'); btn.disabled = true; btn.classList.add('opacity-60');
+    $('saveLabel').textContent = 'SAVING…';
+    try { await SN.api('PUT', '/api/contact', payload); SN.toast('Contact saved'); }
+    catch (e) { SN.toast(e.message, 'err'); }
+    finally { btn.disabled = false; btn.classList.remove('opacity-60'); $('saveLabel').textContent = 'SAVE CONTACT'; }
+  });
+})();
+</script>
+</body>
+</html>

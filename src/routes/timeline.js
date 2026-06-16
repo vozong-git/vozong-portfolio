@@ -7,14 +7,16 @@ const router = express.Router();
 
 const serialize = (t) => ({
   id: t.id, role: t.role, venue: t.venue, period: t.period,
-  is_current: !!t.is_current, sort_order: t.sort_order, created_at: t.created_at,
+  is_current: !!t.is_current, kind: t.kind, sort_order: t.sort_order, created_at: t.created_at,
 });
 
-// GET /api/timeline (public)
-router.get('/', (_req, res) => {
-  const rows = db.db.prepare(
-    'SELECT * FROM timeline ORDER BY is_current DESC, sort_order ASC, id DESC'
-  ).all();
+// GET /api/timeline?kind=live|playback (public)
+router.get('/', (req, res) => {
+  const kind = ['live', 'playback'].includes(req.query.kind) ? req.query.kind : null;
+  const order = 'ORDER BY is_current DESC, sort_order ASC, id DESC';
+  const rows = kind
+    ? db.db.prepare(`SELECT * FROM timeline WHERE kind = ? ${order}`).all(kind)
+    : db.db.prepare(`SELECT * FROM timeline ${order}`).all();
   res.json({ timeline: rows.map(serialize) });
 });
 
@@ -30,6 +32,11 @@ function validate(body, partial = false) {
   if (has('venue')) out.venue = (body.venue ?? '').toString().trim() || null;
   if (has('period')) out.period = (body.period ?? '').toString().trim() || null;
   if (has('is_current')) out.is_current = body.is_current ? 1 : 0;
+  if (has('kind')) {
+    const k = (body.kind || 'live').toString().trim().toLowerCase();
+    if (!['live', 'playback'].includes(k)) errors.push("kind must be 'live' or 'playback'");
+    out.kind = k;
+  }
   if (has('sort_order')) out.sort_order = parseInt(body.sort_order, 10) || 0;
   return { errors, value: out };
 }
@@ -39,11 +46,11 @@ router.post('/', requireAdmin, (req, res) => {
   const { errors, value } = validate(req.body || {});
   if (errors.length) return res.status(400).json({ error: 'validation', details: errors });
   const info = db.db.prepare(`
-    INSERT INTO timeline (role, venue, period, is_current, sort_order)
-    VALUES (@role, @venue, @period, @is_current, @sort_order)
+    INSERT INTO timeline (role, venue, period, is_current, kind, sort_order)
+    VALUES (@role, @venue, @period, @is_current, @kind, @sort_order)
   `).run({
     role: value.role, venue: value.venue ?? null, period: value.period ?? null,
-    is_current: value.is_current ?? 0, sort_order: value.sort_order ?? 0,
+    is_current: value.is_current ?? 0, kind: value.kind ?? 'live', sort_order: value.sort_order ?? 0,
   });
   const row = db.db.prepare('SELECT * FROM timeline WHERE id = ?').get(info.lastInsertRowid);
   res.status(201).json({ item: serialize(row) });

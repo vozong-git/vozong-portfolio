@@ -58,11 +58,21 @@
       </div>
     </section>
 
-    <section class="xl:col-span-1 flex flex-col gap-4">
-      <h3 class="font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant pb-2">LIVE SOUND TIMELINE</h3>
-      <div class="bg-surface-container border border-outline-variant rounded p-6 inner-glow h-full">
-        <div id="timeline" class="relative border-l border-outline-variant ml-3 space-y-6">
-          <p class="font-metadata-sm text-metadata-sm text-on-surface-variant pl-6">Loading…</p>
+    <section class="xl:col-span-1 flex flex-col gap-stack-md">
+      <div class="flex flex-col gap-4">
+        <h3 class="font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant pb-2">LIVE SOUND TIMELINE</h3>
+        <div class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
+          <div id="timelineLive" class="relative border-l border-outline-variant ml-3 space-y-6">
+            <p class="font-metadata-sm text-metadata-sm text-on-surface-variant pl-6">Loading…</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-4">
+        <h3 class="font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant pb-2">PLAYBACK TIMELINE</h3>
+        <div class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
+          <div id="timelinePlayback" class="relative border-l border-outline-variant ml-3 space-y-6">
+            <p class="font-metadata-sm text-metadata-sm text-on-surface-variant pl-6">Loading…</p>
+          </div>
         </div>
       </div>
     </section>
@@ -111,14 +121,18 @@
     e.preventDefault(); load(a.dataset.cat || '');
   });
 
-  // timeline
-  try {
-    const { timeline } = await SN.api('GET', '/api/timeline');
-    const tl = document.getElementById('timeline');
-    tl.innerHTML = timeline.length
-      ? timeline.map((t, i) => SN.timelineItem(t, i === 0)).join('')
-      : `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant pl-6">No timeline entries.</p>`;
-  } catch (_) {}
+  // timelines (live + playback)
+  async function loadTimeline(kind, elId) {
+    try {
+      const { timeline } = await SN.api('GET', `/api/timeline?kind=${kind}`);
+      const el = document.getElementById(elId);
+      el.innerHTML = timeline.length
+        ? timeline.map((t, i) => SN.timelineItem(t, i === 0)).join('')
+        : `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant pl-6">No entries yet.</p>`;
+    } catch (_) {}
+  }
+  loadTimeline('live', 'timelineLive');
+  loadTimeline('playback', 'timelinePlayback');
 
   load('');
 })();
