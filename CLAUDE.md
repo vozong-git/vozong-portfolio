@@ -86,5 +86,5 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS, 구 base.css 통�
 1. ~~Tailwind Play-CDN → 빌드 스텝 전환~~ ✅ 완료 (Tailwind CLI v3, `npm run build:css`, prestart 자동 빌드).
 2. ~~실제 OAuth 클라이언트로 토큰 교환 + 드라이브 업로드 실동작 확인.~~ ✅ 완료 (2026-06-16, end-to-end 검증).
 3. 오디오 업로드(`portfolio_audio`) 프론트 UI 마무리 — 백엔드는 이미 지원.
-4. 배포(HTTPS, 실 도메인으로 `BASE_URL`·redirect URI 갱신).
+4. 배포 — Render Blueprint(`render.yaml`) + `.node-version`(22) 작성 완료. `config.js`가 `RENDER_EXTERNAL_URL`→`BASE_URL` 자동 도출. SQLite 영속 위해 Starter+Disk(유료). **실배포는 사용자 액션**(시크릿 입력 + 운영 redirect URI 추가). 절차는 README §3.5.
 5. (선택) 이미지 썸네일 생성으로 raw 프록시 대역폭 절감, 정렬·페이지네이션, SEO 메타.

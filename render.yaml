@@ -1,0 +1,41 @@
+# Render Blueprint — Studio Noir Portfolio
+# Deploy:  Render Dashboard → New → Blueprint → connect this repo.
+# SQLite needs a Persistent Disk, so this uses the (paid) Starter plan.
+services:
+  - type: web
+    name: studio-noir-portfolio
+    runtime: node
+    plan: starter            # Persistent Disk requires a paid instance
+    region: singapore        # closest Render region to Korea
+    branch: master
+    autoDeploy: true
+    buildCommand: npm install && npm run build:css
+    startCommand: node server.js   # build already ran above; skip prestart double-build
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # SQLite lives on the persistent disk so data survives deploys/restarts
+      - key: DB_PATH
+        value: /var/data/portfolio.db
+      # BASE_URL is derived from RENDER_EXTERNAL_URL automatically (see src/config.js)
+      # Secrets are generated once and kept stable by Render
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: TOKEN_ENC_KEY     # ⚠ changing this invalidates the stored Drive refresh token
+        generateValue: true
+      # Fill these in the Render dashboard (kept out of git)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: DRIVE_IMAGE_FOLDER
+        value: portfolio_image
+      - key: MAX_UPLOAD_MB
+        value: "500"

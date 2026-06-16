@@ -95,6 +95,29 @@ npm start          # → http://localhost:8080  (start 전 prestart가 CSS를 �
 
 ---
 
+## 3.5 배포 (Render)
+
+SQLite 파일 DB를 쓰므로 **영속 디스크(Persistent Disk)** 가 필요합니다 → Render **Starter(유료)** 플랜.
+저장소에 포함된 `render.yaml`(Blueprint)이 web 서비스 + 디스크 + 환경변수를 정의합니다.
+
+1. **Blueprint 연결**: Render Dashboard → **New → Blueprint** → 이 GitHub 저장소 연결 → `render.yaml` 자동 인식.
+2. **시크릿 입력** (`sync:false` 항목, Render 대시보드에서):
+   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — OAuth 클라이언트
+   - `ADMIN_EMAIL` — 로그인 허용할 본인 구글 계정
+   - (`SESSION_SECRET`·`TOKEN_ENC_KEY`는 Render가 자동 생성·고정. `BASE_URL`은 `RENDER_EXTERNAL_URL`에서 자동 도출 → 입력 불필요)
+3. **첫 배포** → 서비스 URL 확인 (예: `https://studio-noir-portfolio.onrender.com`).
+4. **Google Cloud Console → Credentials → OAuth 클라이언트**의 **Authorized redirect URIs**에 운영 URL 추가:
+   ```
+   https://<your-service>.onrender.com/api/auth/google/callback
+   ```
+5. 브라우저로 `https://<your-service>.onrender.com/login.html` → **Sign in with Google** → 동의.
+   이제 `NODE_ENV=production`이라 쿠키가 `secure`로 발급되며, 디스크 덕분에 재배포해도 로그인·데이터가 유지됩니다.
+
+> ⚠️ `TOKEN_ENC_KEY`를 바꾸면 저장된 Drive refresh token을 복호화할 수 없어 재로그인이 필요합니다.
+> ⚠️ 동의화면은 **Testing** 상태 유지(1인 전용). 운영 도메인을 붙이면 redirect URI를 그 도메인으로 추가하세요.
+
+---
+
 ## 4. API 레퍼런스
 
 | Method & Path | 권한 | 설명 |

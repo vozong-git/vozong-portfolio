@@ -14,7 +14,10 @@ function req(name) {
 }
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
-const BASE_URL = (process.env.BASE_URL || `http://localhost:${PORT}`).replace(/\/+$/, '');
+// On Render, RENDER_EXTERNAL_URL is injected automatically (https://<svc>.onrender.com),
+// so BASE_URL can be left unset in that environment.
+const BASE_URL = (process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`)
+  .replace(/\/+$/, '');
 
 const config = {
   env: process.env.NODE_ENV || 'development',
