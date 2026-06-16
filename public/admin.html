@@ -63,13 +63,14 @@
           <tr class="border-b border-outline-variant bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant">
             <th class="p-4 font-normal">DATE</th>
             <th class="p-4 font-normal">PROJECT NAME</th>
+            <th class="p-4 font-normal">ARTIST</th>
             <th class="p-4 font-normal">TYPE</th>
             <th class="p-4 font-normal">STATUS</th>
             <th class="p-4 font-normal text-right">ACTIONS</th>
           </tr>
         </thead>
         <tbody id="tableBody" class="font-metadata-sm text-metadata-sm">
-          <tr><td colspan="5" class="p-6 text-center text-on-surface-variant">Loading…</td></tr>
+          <tr><td colspan="6" class="p-6 text-center text-on-surface-variant">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -110,6 +111,7 @@
     return `<tr class="border-b border-outline-variant hover:bg-surface-container-high transition-colors" data-id="${p.id}">
       <td class="p-4 text-on-surface-variant">${SN.escape(p.completion_date || p.created_at?.slice(0,10) || '')}</td>
       <td class="p-4 text-on-surface font-semibold">${SN.escape(p.title)}</td>
+      <td class="p-4 text-on-surface-variant">${SN.escape(p.client_name || '—')}</td>
       <td class="p-4 ${typeColor}">${SN.escape(SN.catLabel(p))}</td>
       <td class="p-4">${statusChip(p.status)}</td>
       <td class="p-4 text-right whitespace-nowrap">
@@ -123,13 +125,13 @@
   const tbody = document.getElementById('tableBody');
 
   async function load() {
-    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-on-surface-variant">Loading…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-on-surface-variant">Loading…</td></tr>`;
     const url = '/api/projects' + (filter ? `?status=${filter}` : '');
     const { projects } = await SN.api('GET', url);
     document.getElementById('totalCount').textContent = projects.length;
     tbody.innerHTML = projects.length
       ? projects.map(row).join('')
-      : `<tr><td colspan="5" class="p-6 text-center text-on-surface-variant">No projects. <a href="/project-form.html" class="text-primary-fixed-dim">Create one →</a></td></tr>`;
+      : `<tr><td colspan="6" class="p-6 text-center text-on-surface-variant">No projects. <a href="/project-form.html" class="text-primary-fixed-dim">Create one →</a></td></tr>`;
   }
 
   document.getElementById('filterTabs').addEventListener('click', (e) => {

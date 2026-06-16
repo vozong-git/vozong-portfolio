@@ -60,6 +60,7 @@ const SN = {
       <div class="flex flex-col gap-1 overflow-hidden">
         <span class="font-metadata-sm text-metadata-sm text-primary-fixed-dim truncate">${SN.escape(p.client_name || '—')}</span>
         <h4 class="font-body-md text-body-md font-semibold text-on-surface truncate">${SN.escape(p.title)}</h4>
+        ${p.completion_date ? `<span class="font-metadata-sm text-[10px] text-outline">${SN.escape(p.completion_date)}</span>` : ''}
         <div class="flex items-center gap-2 mt-1 flex-wrap">${tags}</div>
       </div>
     </article>`;
