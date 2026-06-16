@@ -61,6 +61,19 @@
       </section>
 
       <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
+        <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">cloud_upload</span> Media Ingestion</h3>
+        <div id="dropZone" class="border-2 border-dashed border-outline-variant rounded-lg p-6 flex flex-col items-center text-center cursor-pointer hover:border-primary-fixed-dim transition-colors">
+          <span class="material-symbols-outlined text-3xl text-primary-fixed-dim mb-2">backup</span>
+          <p class="font-metadata-sm text-metadata-sm text-on-surface">Drag &amp; Drop, or Paste (⌘V / Ctrl+V)</p>
+          <p class="font-label-caps text-[10px] text-outline mt-1">WAV, AIF, MP3, PNG, JPG (MAX 100MB)</p>
+          <button type="button" id="browseBtn" class="mt-4 border border-outline-variant rounded px-4 py-2 font-label-caps text-label-caps text-on-surface-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim transition-colors">Browse Terminal</button>
+          <input id="fileInput" type="file" multiple accept=".wav,.aif,.aiff,.mp3,.png,.jpg,.jpeg,.webp,.gif,image/*,audio/*" hidden/>
+        </div>
+        <ul id="fileList" class="mt-3 flex flex-col gap-2"></ul>
+        <div id="existingAssets" class="mt-3 flex flex-col gap-2"></div>
+      </section>
+
+      <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
         <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">tune</span> Technical Specifications</h3>
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Work Category Routing</label>
         <div id="catGroup" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 mb-2">
@@ -85,21 +98,8 @@
       </section>
     </div>
 
-    <!-- right: media + status -->
+    <!-- right: status -->
     <div class="xl:col-span-1 flex flex-col gap-stack-md">
-      <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
-        <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">cloud_upload</span> Media Ingestion</h3>
-        <div id="dropZone" class="border-2 border-dashed border-outline-variant rounded-lg p-6 flex flex-col items-center text-center cursor-pointer hover:border-primary-fixed-dim transition-colors">
-          <span class="material-symbols-outlined text-3xl text-primary-fixed-dim mb-2">backup</span>
-          <p class="font-metadata-sm text-metadata-sm text-on-surface">Drag &amp; Drop, or Paste (⌘V / Ctrl+V)</p>
-          <p class="font-label-caps text-[10px] text-outline mt-1">WAV, AIF, MP3, PNG, JPG (MAX 100MB)</p>
-          <button type="button" id="browseBtn" class="mt-4 border border-outline-variant rounded px-4 py-2 font-label-caps text-label-caps text-on-surface-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim transition-colors">Browse Terminal</button>
-          <input id="fileInput" type="file" multiple accept=".wav,.aif,.aiff,.mp3,.png,.jpg,.jpeg,.webp,.gif,image/*,audio/*" hidden/>
-        </div>
-        <ul id="fileList" class="mt-3 flex flex-col gap-2"></ul>
-        <div id="existingAssets" class="mt-3 flex flex-col gap-2"></div>
-      </section>
-
       <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
         <div class="flex items-center justify-between mb-4">
           <span class="font-metadata-sm text-metadata-sm text-on-surface-variant">System<br>Status</span>
@@ -146,6 +146,14 @@
     const b = e.target.closest('.cat-btn'); if (b) setCategory(b.dataset.cat);
   });
   setCategory('studio');
+
+  // accept pasted dates like 2013-12-13 / 2013.12.13 / 2013/12/13 → yyyy-mm-dd
+  $('f_date').addEventListener('paste', (e) => {
+    const cd = e.clipboardData || window.clipboardData;
+    const text = (cd ? cd.getData('text') : '').trim();
+    const m = text.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+    if (m) { e.preventDefault(); $('f_date').value = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`; }
+  });
 
   // ── file picking / drag&drop ──
   const dz = $('dropZone'), input = $('fileInput'), list = $('fileList');
