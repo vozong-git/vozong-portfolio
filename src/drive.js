@@ -128,7 +128,8 @@ async function getFileStream(fileId) {
 }
 
 /** Fetch a Drive-generated thumbnail (small JPEG) for an image file.
- *  Returns { body (web stream), contentType } or null if unavailable. */
+ *  Returns { buffer, contentType } or null if unavailable. Buffers (not a
+ *  stream) so the caller can both cache the bytes and serve them. */
 async function getThumbnail(fileId, size) {
   const client = oauthClient(true);
   const drive = google.drive({ version: 'v3', auth: client });
@@ -138,8 +139,54 @@ async function getThumbnail(fileId, size) {
   const url = data.thumbnailLink.replace(/=s\d+(-[a-z0-9]+)*$/i, `=s${size}`);
   const { token } = await client.getAccessToken();
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  if (!res.ok || !res.body) return null;
-  return { body: res.body, contentType: res.headers.get('content-type') || 'image/jpeg' };
+  if (!res.ok) return null;
+  const buffer = Buffer.from(await res.arrayBuffer());
+  return { buffer, contentType: res.headers.get('content-type') || 'image/jpeg' };
+}
+
+/** Upload a SQLite backup file to a `portfolio_backup` Drive folder, then
+ *  prune older backups beyond `keep`. Returns the uploaded file metadata. */
+async function uploadBackup(filePath, name, keep = 14) {
+  const drive = driveClient();
+  const folderName = 'portfolio_backup';
+
+  // find or create the backup folder (not cached — backups are infrequent)
+  const q = [
+    `name = '${folderName}'`,
+    "mimeType = 'application/vnd.google-apps.folder'",
+    'trashed = false',
+  ].join(' and ');
+  const list = await drive.files.list({ q, fields: 'files(id)', pageSize: 1 });
+  let folderId = list.data.files && list.data.files[0] && list.data.files[0].id;
+  if (!folderId) {
+    const created = await drive.files.create({
+      requestBody: { name: folderName, mimeType: 'application/vnd.google-apps.folder' },
+      fields: 'id',
+    });
+    folderId = created.data.id;
+  }
+
+  const res = await drive.files.create({
+    requestBody: { name, parents: [folderId] },
+    media: { mimeType: 'application/octet-stream', body: fs.createReadStream(filePath) },
+    fields: 'id,name,size',
+  });
+
+  // prune oldest backups, keeping the most recent `keep`
+  try {
+    const existing = await drive.files.list({
+      q: `'${folderId}' in parents and trashed = false`,
+      fields: 'files(id,createdTime)',
+      orderBy: 'createdTime desc',
+      pageSize: 100,
+    });
+    const files = existing.data.files || [];
+    for (const f of files.slice(keep)) {
+      await drive.files.delete({ fileId: f.id }).catch(() => {});
+    }
+  } catch (_) { /* pruning is best-effort */ }
+
+  return res.data;
 }
 
 /** Permanently delete a Drive file (best-effort). */
@@ -153,5 +200,5 @@ async function deleteFile(fileId) {
 }
 
 module.exports = {
-  authUrl, exchangeCode, ensureFolder, uploadFile, getFileStream, getThumbnail, deleteFile, oauthClient,
+  authUrl, exchangeCode, ensureFolder, uploadFile, getFileStream, getThumbnail, uploadBackup, deleteFile, oauthClient,
 };

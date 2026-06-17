@@ -1,8 +1,8 @@
 'use strict';
-const { Readable } = require('stream');
 const express = require('express');
 const db = require('../db');
 const drive = require('../drive');
+const cache = require('../cache');
 const { requireAdmin } = require('../auth');
 
 const router = express.Router();
@@ -21,16 +21,26 @@ router.get('/:id/raw', async (req, res) => {
   const isAdmin = req.user && req.user.role === 'admin';
   if (asset.project_status !== 'published' && !isAdmin) return res.status(404).end();
 
-  // thumbnail (images only): best-effort Drive thumbnail, falls back to full image
+  // thumbnail (images only): served from a disk cache; on miss we fetch the
+  // Drive thumbnail once and store it. Per-asset thumbnails never change, so
+  // they can be cached aggressively. Falls back to the full image on failure.
   const thumb = parseInt(req.query.thumb, 10);
   if (thumb && asset.kind === 'image' && [120, 160, 200, 320, 400].includes(thumb)) {
+    const cached = cache.getThumb(asset.id, thumb);
+    if (cached) {
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      res.setHeader('X-Thumb-Cache', 'HIT');
+      return res.end(cached);
+    }
     try {
       const t = await drive.getThumbnail(asset.drive_file_id, thumb);
       if (t) {
+        cache.putThumb(asset.id, thumb, t.buffer);
         res.setHeader('Content-Type', t.contentType);
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-        Readable.fromWeb(t.body).pipe(res);
-        return;
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('X-Thumb-Cache', 'MISS');
+        return res.end(t.buffer);
       }
     } catch (_) { /* fall through to full image */ }
   }
@@ -69,6 +79,7 @@ router.delete('/:id', requireAdmin, async (req, res) => {
   if (!asset) return res.status(404).json({ error: 'not_found' });
   await drive.deleteFile(asset.drive_file_id);
   db.db.prepare('DELETE FROM assets WHERE id = ?').run(asset.id);
+  cache.delThumb(asset.id);
   res.json({ ok: true });
 });
 

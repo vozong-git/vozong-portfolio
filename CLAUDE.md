@@ -38,12 +38,15 @@ src/
   config.js        설정 로더, assertGoogleConfigured
   db.js            better-sqlite3. 스키마(projects/assets/timeline/admin_state) + AES-256-GCM enc/dec
   auth.js          /me /google /google/callback /logout. JWT 발급/검증. requireAdmin 미들웨어
-  drive.js         oauthClient, ensureFolder(image|audio), uploadBuffer, getFileStream, deleteFile
+  drive.js         oauthClient, ensureFolder(image|audio), uploadFile, getFileStream, getThumbnail(Buffer), uploadBackup, deleteFile
+  cache.js         썸네일 디스크 캐시(data/cache/thumbs, Render: /var/data/cache/thumbs). get/put/delThumb
   routes/
     projects.js    CRUD + 직렬화(cover_url, assets). 방문자=published만 / 관리자=status·category·q 필터
     upload.js      POST /api/upload → Drive. 첫 이미지 자동 커버. drive 미연결 시 409
-    assets.js      raw 스트림 프록시, PATCH /:id/cover, DELETE /:id
+    assets.js      raw 스트림 프록시(+?thumb= 디스크 캐시), PATCH /:id/cover, DELETE /:id
+    backup.js      POST /api/backup(admin) → SQLite .backup() → Drive portfolio_backup. runBackup() 공유
     timeline.js    Live Sound 타임라인 CRUD
+scripts/backup.js  cron용 standalone 백업 러너 (node scripts/backup.js)
 public/            정적 프론트(Tailwind CLI 빌드, Play-CDN 제거)
   index.html       공개 포트폴리오
   login.html       구글 로그인

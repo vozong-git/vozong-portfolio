@@ -30,6 +30,8 @@
   <div class="mt-auto px-4 flex flex-col gap-1 pt-4 border-t border-outline-variant">
     <div id="who" class="px-4 py-2 font-metadata-sm text-[11px] text-outline truncate"></div>
     <a id="driveStatus" class="px-4 py-2 font-metadata-sm text-[11px] flex items-center gap-2"></a>
+    <button id="backupBtn" class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow text-left">
+      <span class="material-symbols-outlined">backup</span><span class="font-label-caps text-label-caps">Backup DB</span></button>
     <button id="logoutBtn" class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow text-left">
       <span class="material-symbols-outlined">logout</span><span class="font-label-caps text-label-caps">Logout</span></button>
   </div>
@@ -162,6 +164,16 @@
         SN.toast('Deleted'); load();
       }
     } catch (err) { SN.toast(err.message, 'err'); }
+  });
+
+  document.getElementById('backupBtn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true; SN.toast('Backing up…');
+    try {
+      const r = await SN.api('POST', '/api/backup');
+      SN.toast(`Backed up → ${r.name}`);
+    } catch (err) { SN.toast(err.message || 'Backup failed', 'err'); }
+    finally { btn.disabled = false; }
   });
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {

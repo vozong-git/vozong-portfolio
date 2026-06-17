@@ -12,6 +12,7 @@ const projects = require('./src/routes/projects');
 const uploadRouter = require('./src/routes/upload');
 const assetsRouter = require('./src/routes/assets');
 const contactRouter = require('./src/routes/contact');
+const backupRouter = require('./src/routes/backup');
 
 db.init(); // ensure schema exists
 
@@ -51,6 +52,7 @@ app.use('/api/projects', apiLimiter, projects.router);
 app.use('/api/upload', apiLimiter, uploadRouter);
 app.use('/api/assets', apiLimiter, assetsRouter);
 app.use('/api/contact', apiLimiter, contactRouter);
+app.use('/api/backup', apiLimiter, backupRouter);
 
 app.get('/api/health', (_req, res) => {
   const linked = !!(db.getAdminState() && db.getAdminState().refresh_token);

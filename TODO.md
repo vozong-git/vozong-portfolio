@@ -8,16 +8,20 @@
 
 ---
 
-## 🔴 1순위 (데이터가 쌓인 지금 가장 가치 큼)
+## ✅ 1순위 — 완료 (2026-06-17)
 
-### 1. 썸네일 서버 캐시
-- **문제**: 썸네일 응답이 `cf-cache-status: DYNAMIC`(CDN 캐시 안 됨) → 카드 1개당 Drive API를 매번 호출. 방문자 늘면 Drive 할당량·지연 위험.
-- **위치**: `src/drive.js` `getThumbnail()`, `src/routes/assets.js` `?thumb=` 분기.
-- **방향**: 썸네일 바이트를 서버에 캐시(메모리 LRU 또는 디스크 `/var/data/cache/{assetId}-{size}`). 캐시 히트 시 Drive 호출 생략. `getAccessToken()`도 캐시 가능(googleapis가 일부 자동).
+### 1. 썸네일 서버 캐시 ✅
+- 디스크 캐시 도입: `src/cache.js`(`data/cache/thumbs/{assetId}-{size}.jpg`, Render는 `/var/data/cache/thumbs`).
+- `src/drive.js` `getThumbnail()`이 web stream → **Buffer 반환**으로 변경(캐시 저장 가능).
+- `src/routes/assets.js` `?thumb=` 분기: 캐시 HIT 시 Drive 호출 생략(`X-Thumb-Cache: HIT/MISS` 헤더), `Cache-Control: max-age=31536000, immutable`. 자산 삭제 시 `cache.delThumb()`로 무효화.
+- 검증: 캐시 put/get/del 단위 테스트 통과.
 
-### 2. SQLite 백업
-- **문제**: 실데이터 136개가 Render 디스크의 단일 파일(`/var/data/portfolio.db`)뿐. 디스크 사고 시 전손.
-- **방향**: 주기 백업을 Drive(`portfolio_backup` 폴더)에 업로드하는 엔드포인트/스크립트 + Render Cron Job. 또는 `better-sqlite3` `.backup()` → Drive 업로드. 최소 수동 백업 라우트(admin)라도.
+### 2. SQLite 백업 ✅
+- `better-sqlite3` `.backup()` → Drive `portfolio_backup` 폴더 업로드, 14개 초과분 자동 정리.
+- `src/routes/backup.js`: `POST /api/backup`(admin) + `runBackup()` 공유 함수. admin 대시보드에 **Backup DB 버튼** 추가.
+- `scripts/backup.js`: cron용 standalone 러너(`node scripts/backup.js`).
+- 검증: 로컬에서 실 Drive로 업로드 end-to-end 성공(fileId 반환).
+- **남은 운영 작업**: Render Cron Job 등록(`node scripts/backup.js`, 예: 매일 1회) — 같은 env/디스크 공유 필요.
 
 ---
 
