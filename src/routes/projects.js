@@ -120,9 +120,9 @@ router.get('/tags', requireAdmin, (req, res) => {
     for (const t of r.tags.split(',').map(s => s.trim().toUpperCase()).filter(Boolean)) {
       if (!seen.has(t)) { seen.add(t); out.push(t); }
     }
-    if (out.length >= 24) break;
+    if (out.length >= 5) break;
   }
-  res.json({ tags: out.slice(0, 24) });
+  res.json({ tags: out.slice(0, 5) });
 });
 
 // GET /api/projects/:id

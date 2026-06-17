@@ -193,8 +193,35 @@
   input.addEventListener('change', () => addFiles(input.files));
 
   function addFiles(fileLike) {
-    for (const f of fileLike) pendingFiles.push(f);
+    const arr = [...fileLike];
+    for (const f of arr) pendingFiles.push(f);
+    autofillFromName(arr);
     renderFileList();
+  }
+
+  // Parse "yyyy.mm.dd 아티스트 - 곡제목.jpg" → { date, artist, title }.
+  // Date separators: . - / ; title/artist split on the first hyphen.
+  function parseFileName(name) {
+    const base = name.replace(/\.[^.]+$/, '').trim();
+    const m = base.match(/^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})\s+(.+?)\s*[-–—]\s*(.+)$/);
+    if (!m) return null;
+    return {
+      date: `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`,
+      artist: m[4].trim(),
+      title: m[5].trim(),
+    };
+  }
+  // Auto-fill empty fields from the first image's filename (never overwrites
+  // what the user already typed).
+  function autofillFromName(arr) {
+    const img = arr.find(f => f.type?.startsWith('image') || /\.(jpe?g|png|webp|gif)$/i.test(f.name));
+    const meta = img && parseFileName(img.name);
+    if (!meta) return;
+    const filled = [];
+    if (!$('f_title').value.trim())  { $('f_title').value  = meta.title;  filled.push('Title'); }
+    if (!$('f_client').value.trim()) { $('f_client').value = meta.artist; filled.push('Artist'); }
+    if (!$('f_date').value)          { $('f_date').value   = meta.date;   filled.push('Date'); }
+    if (filled.length) SN.toast(`자동 입력: ${filled.join(', ')}`);
   }
   function renderFileList() {
     list.innerHTML = pendingFiles.map((f, i) => `
@@ -266,33 +293,26 @@
   }
   function addTag(tag) {
     const tags = currentTags();
-    if (!tags.includes(tag)) tags.push(tag);
-    $('f_tags').value = tags.join(', ');
-    renderSuggestions(window._tagPool || []); // refresh "already added" state
+    if (!tags.includes(tag)) { tags.push(tag); $('f_tags').value = tags.join(', '); }
   }
   function renderSuggestions(pool) {
-    const have = new Set(currentTags());
-    $('tagSuggestions').innerHTML = pool.map(t => {
-      const used = have.has(t);
-      return `<button type="button" data-tag="${SN.escape(t)}" ${used ? 'disabled' : ''}
-        class="font-label-caps text-[10px] px-2 py-1 rounded border transition-colors ${used
-          ? 'text-outline border-outline-variant opacity-40 cursor-default'
-          : 'text-on-surface-variant border-outline-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim'}">
-        ${SN.escape(t)}</button>`;
-    }).join('') || '<span class="font-metadata-sm text-[11px] text-outline">최근 사용한 태그 없음</span>';
+    $('tagSuggestions').innerHTML = pool.map(t =>
+      `<button type="button" data-tag="${SN.escape(t)}"
+        class="font-label-caps text-[10px] px-2 py-1 rounded border border-outline-variant text-on-surface-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim transition-colors">
+        ${SN.escape(t)}</button>`
+    ).join('') || '<span class="font-metadata-sm text-[11px] text-outline">최근 사용한 태그 없음</span>';
   }
   $('suggestTagsBtn').addEventListener('click', async () => {
     const box = $('tagSuggestions');
     if (box.dataset.open === '1') { box.innerHTML = ''; box.dataset.open = '0'; return; }
     try {
       const { tags } = await SN.api('GET', '/api/projects/tags');
-      window._tagPool = tags;
       renderSuggestions(tags);
       box.dataset.open = '1';
     } catch (e) { SN.toast(e.message, 'err'); }
   });
   $('tagSuggestions').addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-tag]'); if (!b || b.disabled) return;
+    const b = e.target.closest('button[data-tag]'); if (!b) return;
     addTag(b.dataset.tag);
   });
 
