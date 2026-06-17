@@ -86,10 +86,10 @@
 
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Tags (comma separated)</label>
         <input id="f_tags" placeholder="MIXING, MASTERING" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
-        <div class="flex items-center gap-2 mt-2 mb-4 flex-wrap">
-          <button type="button" id="suggestTagsBtn" class="font-label-caps text-[10px] px-3 py-1 rounded text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim hover:bg-primary-container/20 transition-colors flex items-center gap-1">
-            <span class="material-symbols-outlined text-[14px]">sell</span> 제안 Tags
-          </button>
+        <div class="mt-2 mb-4">
+          <p class="font-label-caps text-[10px] text-outline mb-1 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">sell</span> 최근 태그 (클릭하여 추가)
+          </p>
           <div id="tagSuggestions" class="flex flex-wrap gap-1"></div>
         </div>
 
@@ -302,15 +302,12 @@
         ${SN.escape(t)}</button>`
     ).join('') || '<span class="font-metadata-sm text-[11px] text-outline">최근 사용한 태그 없음</span>';
   }
-  $('suggestTagsBtn').addEventListener('click', async () => {
-    const box = $('tagSuggestions');
-    if (box.dataset.open === '1') { box.innerHTML = ''; box.dataset.open = '0'; return; }
+  (async () => {
     try {
       const { tags } = await SN.api('GET', '/api/projects/tags');
       renderSuggestions(tags);
-      box.dataset.open = '1';
-    } catch (e) { SN.toast(e.message, 'err'); }
-  });
+    } catch (_) { /* suggestions are optional */ }
+  })();
   $('tagSuggestions').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-tag]'); if (!b) return;
     addTag(b.dataset.tag);
