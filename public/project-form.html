@@ -85,7 +85,13 @@
         <input id="f_custom_cat" placeholder="Custom category name" hidden class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
 
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Tags (comma separated)</label>
-        <input id="f_tags" placeholder="MIXING, MASTERING" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+        <input id="f_tags" placeholder="MIXING, MASTERING" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+        <div class="flex items-center gap-2 mt-2 mb-4 flex-wrap">
+          <button type="button" id="suggestTagsBtn" class="font-label-caps text-[10px] px-3 py-1 rounded text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim hover:bg-primary-container/20 transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">sell</span> 제안 Tags
+          </button>
+          <div id="tagSuggestions" class="flex flex-wrap gap-1"></div>
+        </div>
 
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Hardware/Software Deployment (Comma separated)</label>
         <input id="f_specs" placeholder="SSL 4000G, Pro Tools HDX, Neve 1073" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
@@ -105,7 +111,7 @@
           <span class="font-metadata-sm text-metadata-sm text-on-surface-variant">System<br>Status</span>
           <select id="f_status" class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-1.5 text-primary-fixed-dim font-label-caps text-label-caps focus:border-primary-fixed-dim focus:ring-0">
             <option value="draft">READY / DRAFT</option>
-            <option value="published">PUBLISHED</option>
+            <option value="published" selected>PUBLISHED</option>
           </select>
         </div>
         <button id="submitBtn" class="w-full bg-primary-fixed-dim text-on-primary-fixed font-label-caps text-label-caps py-3 rounded flex items-center justify-center gap-2 hover:opacity-90 transition-opacity glow-bloom">
@@ -253,6 +259,42 @@
     const { project } = await SN.api('GET', `/api/projects/${editId}`);
     renderExisting(project.assets || []);
   }
+
+  // ── suggested tags (recently used) ──
+  function currentTags() {
+    return $('f_tags').value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+  }
+  function addTag(tag) {
+    const tags = currentTags();
+    if (!tags.includes(tag)) tags.push(tag);
+    $('f_tags').value = tags.join(', ');
+    renderSuggestions(window._tagPool || []); // refresh "already added" state
+  }
+  function renderSuggestions(pool) {
+    const have = new Set(currentTags());
+    $('tagSuggestions').innerHTML = pool.map(t => {
+      const used = have.has(t);
+      return `<button type="button" data-tag="${SN.escape(t)}" ${used ? 'disabled' : ''}
+        class="font-label-caps text-[10px] px-2 py-1 rounded border transition-colors ${used
+          ? 'text-outline border-outline-variant opacity-40 cursor-default'
+          : 'text-on-surface-variant border-outline-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim'}">
+        ${SN.escape(t)}</button>`;
+    }).join('') || '<span class="font-metadata-sm text-[11px] text-outline">최근 사용한 태그 없음</span>';
+  }
+  $('suggestTagsBtn').addEventListener('click', async () => {
+    const box = $('tagSuggestions');
+    if (box.dataset.open === '1') { box.innerHTML = ''; box.dataset.open = '0'; return; }
+    try {
+      const { tags } = await SN.api('GET', '/api/projects/tags');
+      window._tagPool = tags;
+      renderSuggestions(tags);
+      box.dataset.open = '1';
+    } catch (e) { SN.toast(e.message, 'err'); }
+  });
+  $('tagSuggestions').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-tag]'); if (!b || b.disabled) return;
+    addTag(b.dataset.tag);
+  });
 
   // ── submit ──
   $('submitBtn').addEventListener('click', async () => {

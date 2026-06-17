@@ -41,3 +41,32 @@ services:
         value: portfolio_image
       - key: MAX_UPLOAD_MB
         value: "100"
+      # shared secret the backup cron uses to trigger POST /api/backup
+      - fromGroup: backup-secrets
+
+  # ── scheduled DB backup ──
+  # Cron jobs can't mount the web service's persistent disk, so this doesn't
+  # open the DB directly — it calls POST /api/backup on the web service (which
+  # has the disk + Drive link), authenticated by the shared BACKUP_TOKEN.
+  # Schedule is UTC: 18:00 UTC = 03:00 KST, daily.
+  - type: cron
+    name: vozong-portfolio-backup
+    runtime: node
+    plan: starter
+    region: singapore
+    branch: main
+    schedule: "0 18 * * *"
+    # no native deps needed — trigger-backup.js only uses global fetch
+    buildCommand: "true"
+    startCommand: node scripts/trigger-backup.js
+    envVars:
+      - key: BACKUP_URL
+        value: https://vozong-portfolio.onrender.com/api/backup
+      - fromGroup: backup-secrets
+
+# Shared env group so the web service and the cron job use the same token.
+envVarGroups:
+  - name: backup-secrets
+    envVars:
+      - key: BACKUP_TOKEN
+        generateValue: true

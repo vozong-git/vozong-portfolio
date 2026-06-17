@@ -25,8 +25,17 @@ async function runBackup() {
   }
 }
 
-// POST /api/backup (admin) — create a backup now
-router.post('/', requireAdmin, async (req, res) => {
+// Allow either an authenticated admin OR a request bearing the shared
+// BACKUP_TOKEN header — the latter lets a scheduled Render cron trigger
+// backups over HTTP (cron jobs can't share the web service's disk).
+function requireAdminOrToken(req, res, next) {
+  const token = process.env.BACKUP_TOKEN;
+  if (token && req.get('X-Backup-Token') === token) return next();
+  return requireAdmin(req, res, next);
+}
+
+// POST /api/backup (admin or X-Backup-Token) — create a backup now
+router.post('/', requireAdminOrToken, async (req, res) => {
   try {
     const { name, file } = await runBackup();
     res.json({ ok: true, name, fileId: file.id });

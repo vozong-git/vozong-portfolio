@@ -108,6 +108,23 @@ router.get('/', (req, res) => {
   res.json({ projects: rows.map(serialize) });
 });
 
+// GET /api/projects/tags  (admin) — distinct tags, most-recently-used first.
+// Declared before /:id so "tags" isn't captured as an :id param.
+router.get('/tags', requireAdmin, (req, res) => {
+  const rows = db.db.prepare(
+    "SELECT tags FROM projects WHERE tags IS NOT NULL AND tags != '' ORDER BY updated_at DESC, id DESC"
+  ).all();
+  const seen = new Set();
+  const out = [];
+  for (const r of rows) {
+    for (const t of r.tags.split(',').map(s => s.trim().toUpperCase()).filter(Boolean)) {
+      if (!seen.has(t)) { seen.add(t); out.push(t); }
+    }
+    if (out.length >= 24) break;
+  }
+  res.json({ tags: out.slice(0, 24) });
+});
+
 // GET /api/projects/:id
 router.get('/:id', (req, res) => {
   const row = db.db.prepare('SELECT * FROM projects WHERE id = ?').get(req.params.id);
