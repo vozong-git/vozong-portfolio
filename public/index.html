@@ -133,7 +133,10 @@
     if (card) { openDetail(card.dataset.id); return; }
     if (e.target.closest('#backBtn')) { load(activeCat); return; }
     const thumb = e.target.closest('button[data-img]');
-    if (thumb) { const m = document.getElementById('detailMain'); if (m) m.src = thumb.dataset.img; }
+    if (thumb) {
+      const m = document.getElementById('detailMain'); if (m) m.src = thumb.dataset.img;
+      const bg = document.getElementById('detailBg'); if (bg) bg.src = thumb.dataset.img;
+    }
   });
 
   function ytId(url) {
@@ -161,8 +164,11 @@
       ? `<div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe src="https://www.youtube.com/embed/${yt}" class="w-full h-full" title="YouTube video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
       : '';
     const mainSrc = p.cover_url || (images[0] && images[0].url) || '';
+    // Blurred copy of the same image fills the letterbox so every cover —
+    // square, portrait, landscape — looks intentional with no empty frame.
     const gallery = mainSrc
-      ? `<img id="detailMain" src="${mainSrc}" alt="${SN.escape(p.title)}" class="w-full h-full object-contain"/>`
+      ? `<img id="detailBg" src="${mainSrc}" alt="" aria-hidden="true" class="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40"/>
+         <img id="detailMain" src="${mainSrc}" alt="${SN.escape(p.title)}" class="relative w-full h-full object-contain"/>`
       : `<span class="material-symbols-outlined text-5xl text-outline">graphic_eq</span>`;
     const thumbs = images.length > 1
       ? `<div class="grid grid-cols-5 gap-2">${images.map(a => `
@@ -191,7 +197,7 @@
         </button>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-md">
           <div class="lg:col-span-2 flex flex-col gap-4">
-            <div class="aspect-video bg-surface-container-lowest border border-outline-variant rounded inner-glow overflow-hidden flex items-center justify-center">${gallery}</div>
+            <div class="relative aspect-video bg-surface-container-lowest border border-outline-variant rounded inner-glow overflow-hidden flex items-center justify-center">${gallery}</div>
             ${thumbs}
             ${audioBlock}
             ${ytBlock}
