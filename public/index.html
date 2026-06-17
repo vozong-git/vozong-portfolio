@@ -160,9 +160,16 @@
     const images = (p.assets || []).filter(a => a.kind === 'image');
     const audios = (p.assets || []).filter(a => a.kind === 'audio');
     const yt = ytId(p.youtube_url);
+    // No saved video? Offer a YouTube search for "artist title" (opens in a new
+    // tab — YouTube blocks embedding its search results in an iframe).
+    const searchQ = encodeURIComponent([p.client_name, p.title].filter(Boolean).join(' ').trim());
     const ytBlock = yt
       ? `<div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe src="https://www.youtube.com/embed/${yt}" class="w-full h-full" title="YouTube video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
-      : '';
+      : (searchQ
+        ? `<a href="https://www.youtube.com/results?search_query=${searchQ}" target="_blank" rel="noopener"
+             class="flex items-center justify-center gap-2 bg-surface-container border border-outline-variant rounded py-3 font-label-caps text-label-caps text-on-surface-variant hover:text-primary-fixed-dim hover:border-primary-fixed-dim transition-colors">
+             <span class="material-symbols-outlined text-base">smart_display</span> YouTube에서 검색</a>`
+        : '');
     const mainSrc = p.cover_url || (images[0] && images[0].url) || '';
     // Blurred copy of the same image fills the letterbox so every cover —
     // square, portrait, landscape — looks intentional with no empty frame.
