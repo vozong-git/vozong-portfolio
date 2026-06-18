@@ -2,12 +2,23 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const db = require('../db');
 const drive = require('../drive');
 const { requireAdmin } = require('../auth');
 
 const router = express.Router();
+
+// Constant-time token comparison. Hash both sides to a fixed length first so
+// neither the comparison time nor the buffer length leaks anything about the
+// secret.
+function tokenMatches(provided, expected) {
+  if (!provided || !expected) return false;
+  const a = crypto.createHash('sha256').update(String(provided)).digest();
+  const b = crypto.createHash('sha256').update(String(expected)).digest();
+  return crypto.timingSafeEqual(a, b);
+}
 
 /** Snapshot the SQLite DB and upload it to Drive's portfolio_backup folder.
  *  Shared by the admin route and the cron script. */
@@ -29,8 +40,7 @@ async function runBackup() {
 // BACKUP_TOKEN header — the latter lets a scheduled Render cron trigger
 // backups over HTTP (cron jobs can't share the web service's disk).
 function requireAdminOrToken(req, res, next) {
-  const token = process.env.BACKUP_TOKEN;
-  if (token && req.get('X-Backup-Token') === token) return next();
+  if (tokenMatches(req.get('X-Backup-Token'), process.env.BACKUP_TOKEN)) return next();
   return requireAdmin(req, res, next);
 }
 

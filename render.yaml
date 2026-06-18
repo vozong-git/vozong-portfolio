@@ -62,6 +62,9 @@ services:
     envVars:
       - key: BACKUP_URL
         value: https://vozong-portfolio.onrender.com/api/backup
+      # optional: Slack/Discord incoming webhook URL — alerts on backup failure
+      - key: ALERT_WEBHOOK
+        sync: false
       - fromGroup: backup-secrets
 
 # Shared env group so the web service and the cron job use the same token.
