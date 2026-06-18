@@ -266,7 +266,11 @@
       </div>`;
   }
 
-  load('');
+  // deep link: /?project=<id> opens that project's detail directly (admins can
+  // preview drafts this way from the dashboard; also a shareable detail link).
+  const previewId = new URLSearchParams(location.search).get('project');
+  if (previewId) openDetail(previewId);
+  else load('');
 })();
 </script>
 </body>
