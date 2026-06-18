@@ -42,9 +42,11 @@
 - 현재 og 텍스트 메타만 있음(title/description). 1200×630 PNG 자산 필요(디자인 또는 동적 생성).
 - **위치**: `public/index.html` `<head>`.
 
-### 5. Contact 이메일 스팸 보호
-- 공개 `contact.html`에 이메일 노출 → 봇 수집. JS 난독화 또는 클릭 시 표시.
-- **위치**: `public/contact.html`.
+### ~~5. Contact 이메일 스팸 보호~~ ✅ (2026-06-18)
+- 공개 `GET /api/contact`가 email/phone을 **base64로 난독화**해 반환(평문 `@`·숫자 제거 → 이메일 정규식 스크레이퍼 무력화). headline/location은 비민감이라 평문 유지.
+- `contact.html`: **클릭하기 전엔 DOM에 평문 없음**("이메일 보기/전화번호 보기" → 클릭 시 디코드·mailto/tel 링크 생성, 재클릭으로 실행).
+- 관리자 폼 프리필용 평문은 `GET /api/contact/full`(requireAdmin)로 분리. `contact-form.html`이 이를 사용.
+- 검증: 공개 응답에 평문 이메일 없음 / `/full` 무인증 401 확인.
 
 ---
 

@@ -70,7 +70,7 @@
   if (!me.isAdmin) { location.href = '/login.html'; return; }
   const $ = (id) => document.getElementById(id);
   try {
-    const { contact } = await SN.api('GET', '/api/contact');
+    const { contact } = await SN.api('GET', '/api/contact/full');
     $('c_headline').value = contact.headline || '';
     $('c_email').value = contact.email || '';
     $('c_phone').value = contact.phone || '';

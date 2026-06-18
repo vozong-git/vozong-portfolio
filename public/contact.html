@@ -24,12 +24,31 @@
   <script>
   (async () => {
     const $ = (id) => document.getElementById(id);
+    // base64 → UTF-8 string (handles non-ASCII safely)
+    const dec = (b64) => { try { return decodeURIComponent(escape(atob(b64))); } catch (_) { return atob(b64); } };
+    // Click-to-reveal: plaintext is decoded and written to the DOM (and the
+    // mailto/tel link) only after a human clicks — bots that parse the JSON or
+    // the rendered page never see a harvestable address. Second click follows
+    // the now-live link.
+    const reveal = (rowId, valId, b64, label, makeHref) => {
+      const row = $(rowId);
+      $(valId).textContent = label;
+      row.hidden = false;
+      row.addEventListener('click', (e) => {
+        if (row.dataset.revealed) return;
+        e.preventDefault();
+        const v = dec(b64);
+        $(valId).textContent = v;
+        row.href = makeHref(v);
+        row.dataset.revealed = '1';
+      });
+    };
     try {
       const { contact } = await SN.api('GET', '/api/contact');
       if (contact.headline) $('c_headline').textContent = contact.headline;
-      if (contact.email) { $('c_email').textContent = contact.email; $('c_email_row').href = 'mailto:' + contact.email; $('c_email_row').hidden = false; }
-      if (contact.phone) { $('c_phone').textContent = contact.phone; $('c_phone_row').href = 'tel:' + contact.phone.replace(/[^+\d]/g, ''); $('c_phone_row').hidden = false; }
       if (contact.location) { $('c_location').textContent = contact.location; $('c_location_row').hidden = false; }
+      if (contact.email_b64) reveal('c_email_row', 'c_email', contact.email_b64, '이메일 보기', (v) => 'mailto:' + v);
+      if (contact.phone_b64) reveal('c_phone_row', 'c_phone', contact.phone_b64, '전화번호 보기', (v) => 'tel:' + v.replace(/[^+\d]/g, ''));
     } catch (_) { /* keep static fallback */ }
   })();
   </script>
