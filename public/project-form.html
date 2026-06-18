@@ -429,12 +429,20 @@
   }
 
   // the project id that follows the current one in the admin list order
+  // The admin list is ordered newest-first (date DESC), so the visually "next"
+  // project (the row above) is the previous array index. Follow the same
+  // status/category filter the dashboard had, so Next stays within that view.
   async function nextProjectId(currentId) {
     try {
-      const { projects } = await SN.api('GET', '/api/projects');
+      const qs = new URLSearchParams();
+      const f = sessionStorage.getItem('admin_filter') || '';
+      const c = sessionStorage.getItem('admin_catFilter') || '';
+      if (f) qs.set('status', f);
+      if (c) qs.set('category', c);
+      const { projects } = await SN.api('GET', '/api/projects' + (qs.toString() ? `?${qs}` : ''));
       const ids = projects.map(p => String(p.id));
       const i = ids.indexOf(String(currentId));
-      return (i >= 0 && i < ids.length - 1) ? ids[i + 1] : null;
+      return (i > 0) ? ids[i - 1] : null;
     } catch { return null; }
   }
 
@@ -451,7 +459,7 @@
     if (editId) {
       const nid = await nextProjectId(editId);
       if (nid) { location.href = `/project-form.html?id=${nid}`; return; }
-      SN.toast('마지막 프로젝트입니다');
+      SN.toast('더 이상 다음 프로젝트가 없습니다');
       setTimeout(() => location.href = '/admin.html', 800);
     } else {
       location.href = '/project-form.html'; // fresh blank form for the next entry
