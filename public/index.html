@@ -161,9 +161,28 @@
       const { project: p } = await SN.api('GET', `/api/projects/${id}`);
       area.innerHTML = detailView(p);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // No embedded video → try to resolve the real watch link in the background
+      if (!ytId(p.youtube_url)) enhanceYouTubeLink(p.id);
     } catch (e) {
       area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-error">${SN.escape(e.message)}</p>`;
     }
+  }
+
+  // Upgrade the "YouTube에서 검색" fallback into a direct watch-page link once
+  // the backend resolves the project's video id (no-op if unresolved/no key).
+  async function enhanceYouTubeLink(projectId) {
+    const a = document.getElementById('ytLink');
+    if (!a) return;
+    try {
+      const r = await SN.api('GET', `/api/youtube/resolve?projectId=${projectId}`);
+      if (r && r.videoId) {
+        a.href = `https://www.youtube.com/watch?v=${r.videoId}`;
+        const label = document.getElementById('ytLinkLabel');
+        if (label) label.textContent = 'YouTube에서 보기';
+        const icon = a.querySelector('.material-symbols-outlined');
+        if (icon) icon.textContent = 'play_circle';
+      }
+    } catch (_) { /* keep the search fallback */ }
   }
 
   function detailView(p) {
@@ -184,9 +203,12 @@
               <span class="material-symbols-outlined text-base">open_in_new</span> 영상이 안 보이면 YouTube에서 보기</a>
          </div>`
       : (searchQ
-        ? `<a href="https://www.youtube.com/results?search_query=${searchQ}" target="_blank" rel="noopener"
+        // Starts as a plain search link (always works); openDetail() then asks
+        // the backend to resolve the exact video and upgrades this to a direct
+        // watch-page link, which plays even embedding-disabled videos.
+        ? `<a id="ytLink" href="https://www.youtube.com/results?search_query=${searchQ}" target="_blank" rel="noopener"
              class="flex items-center justify-center gap-2 bg-surface-container border border-outline-variant rounded py-3 font-label-caps text-label-caps text-on-surface-variant hover:text-primary-fixed-dim hover:border-primary-fixed-dim transition-colors">
-             <span class="material-symbols-outlined text-base">smart_display</span> YouTube에서 검색</a>`
+             <span class="material-symbols-outlined text-base">smart_display</span> <span id="ytLinkLabel">YouTube에서 검색</span></a>`
         : '');
     const mainSrc = p.cover_url || (images[0] && images[0].url) || '';
     // Blurred copy of the same image fills the letterbox so every cover —

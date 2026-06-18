@@ -13,6 +13,7 @@ const uploadRouter = require('./src/routes/upload');
 const assetsRouter = require('./src/routes/assets');
 const contactRouter = require('./src/routes/contact');
 const backupRouter = require('./src/routes/backup');
+const youtubeRouter = require('./src/routes/youtube');
 
 db.init(); // ensure schema exists
 
@@ -53,6 +54,7 @@ app.use('/api/upload', apiLimiter, uploadRouter);
 app.use('/api/assets', apiLimiter, assetsRouter);
 app.use('/api/contact', apiLimiter, contactRouter);
 app.use('/api/backup', apiLimiter, backupRouter);
+app.use('/api/youtube', apiLimiter, youtubeRouter);
 
 app.get('/api/health', (_req, res) => {
   const linked = !!(db.getAdminState() && db.getAdminState().refresh_token);

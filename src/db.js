@@ -70,6 +70,14 @@ CREATE TABLE IF NOT EXISTS admin_state (
   audio_folder_id  TEXT,
   updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- cache of "artist title" → resolved YouTube video id (empty = no match),
+-- so the YouTube Data API is called at most once per query (quota-friendly).
+CREATE TABLE IF NOT EXISTS yt_cache (
+  query       TEXT PRIMARY KEY,
+  video_id    TEXT,                                  -- '' means resolved-but-no-match
+  resolved_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 function init() {
@@ -162,10 +170,25 @@ function saveContact({ email, phone, location, headline }) {
   }
 }
 
+/* ── YouTube resolve cache ── */
+function getYtCache(query) {
+  open();
+  return db.prepare('SELECT video_id, resolved_at FROM yt_cache WHERE query = ?').get(query) || null;
+}
+
+function putYtCache(query, videoId) {
+  open();
+  db.prepare(`
+    INSERT INTO yt_cache (query, video_id) VALUES (?, ?)
+    ON CONFLICT(query) DO UPDATE SET video_id = excluded.video_id, resolved_at = datetime('now')
+  `).run(query, videoId || '');
+}
+
 module.exports = {
   open, init,
   get db() { return open(); },
   getAdminState, saveAdminIdentity, setFolderId,
   getContact, saveContact,
+  getYtCache, putYtCache,
   encrypt, decrypt,
 };

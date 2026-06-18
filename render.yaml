@@ -37,6 +37,11 @@ services:
         sync: false
       - key: ADMIN_EMAIL
         sync: false
+      # optional: YouTube Data API v3 key — lets the detail page resolve a
+      # project's "artist title" to the real video's watch page. Without it the
+      # YouTube button falls back to a plain search link.
+      - key: YOUTUBE_API_KEY
+        sync: false
       - key: DRIVE_IMAGE_FOLDER
         value: portfolio_image
       - key: MAX_UPLOAD_MB
