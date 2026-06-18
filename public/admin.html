@@ -154,29 +154,41 @@
       : `<tr><td colspan="6" class="p-6 text-center text-on-surface-variant">No projects. <a href="/project-form.html" class="text-primary-fixed-dim">Create one →</a></td></tr>`;
   }
 
-  document.getElementById('filterTabs').addEventListener('click', (e) => {
-    const b = e.target.closest('.ftab'); if (!b) return;
-    filter = b.dataset.f;
-    document.querySelectorAll('.ftab').forEach(t => {
-      const on = t === b;
-      t.className = 'ftab font-label-caps text-[10px] px-3 py-1 rounded ' +
+  function styleTabs(selector, activeBtn) {
+    const base = selector === '.ftab' ? 'ftab' : 'ctab';
+    document.querySelectorAll(selector).forEach(t => {
+      const on = t === activeBtn;
+      t.className = `${base} font-label-caps text-[10px] px-3 py-1 rounded ` +
         (on ? 'text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim'
             : 'text-on-surface-variant border border-outline-variant');
     });
-    load();
+  }
+  // remember the chosen filters so they survive navigating to the editor and back
+  function persistFilters() {
+    sessionStorage.setItem('admin_filter', filter);
+    sessionStorage.setItem('admin_catFilter', catFilter);
+  }
+
+  document.getElementById('filterTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.ftab'); if (!b) return;
+    filter = b.dataset.f; styleTabs('.ftab', b); persistFilters(); load();
   });
 
   document.getElementById('catTabs').addEventListener('click', (e) => {
     const b = e.target.closest('.ctab'); if (!b) return;
-    catFilter = b.dataset.c;
-    document.querySelectorAll('.ctab').forEach(t => {
-      const on = t === b;
-      t.className = 'ctab font-label-caps text-[10px] px-3 py-1 rounded ' +
-        (on ? 'text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim'
-            : 'text-on-surface-variant border border-outline-variant');
-    });
-    load();
+    catFilter = b.dataset.c; styleTabs('.ctab', b); persistFilters(); load();
   });
+
+  // restore previously selected filters on load (e.g. after editing a project)
+  function restoreFilters() {
+    filter = sessionStorage.getItem('admin_filter') || '';
+    catFilter = sessionStorage.getItem('admin_catFilter') || '';
+    const fb = document.querySelector(`.ftab[data-f="${filter}"]`);
+    const cb = document.querySelector(`.ctab[data-c="${catFilter}"]`);
+    if (fb) styleTabs('.ftab', fb); else filter = '';
+    if (cb) styleTabs('.ctab', cb); else catFilter = '';
+  }
+  restoreFilters();
 
   tbody.addEventListener('click', async (e) => {
     const btn = e.target.closest('button[data-act]'); if (!btn) return;
