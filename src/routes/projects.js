@@ -57,6 +57,7 @@ function serializeListRow(p) {
     tags: p.tags ? p.tags.split(',').map(s => s.trim()).filter(Boolean) : [],
     status: p.status,
     created_at: p.created_at,
+    youtube_url: p.youtube_url || null,
     cover_url: p.cover_asset_id ? `/api/assets/${p.cover_asset_id}/raw` : null,
   };
 }
@@ -122,7 +123,7 @@ router.get('/', (req, res) => {
     params.push(like, like, like);
   }
   const sql = `SELECT id, title, client_name, completion_date, category, custom_category,
-                      tags, status, created_at,
+                      tags, status, created_at, youtube_url,
                       (SELECT a.id FROM assets a
                          WHERE a.project_id = projects.id AND a.kind = 'image'
                          ORDER BY a.is_cover DESC, a.id ASC LIMIT 1) AS cover_asset_id
