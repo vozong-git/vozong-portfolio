@@ -39,9 +39,11 @@
 - 검증: 리스트 응답 `assets` 없음·`cover_url` 존재, `/:id` 전체(assets·description) 유지 확인.
 - (남은 옵션) Overview가 전 카테고리를 한 화면에 펼치는 구조라 offset 페이지네이션은 UX와 충돌 → 슬림 페이로드로 첫 로딩 비용 대부분 해소돼 보류. 필요 시 카테고리별 "더 보기"(클라 슬라이스) 추가 가능.
 
-### 4. og:image (소셜 공유 대표 이미지)
-- 현재 og 텍스트 메타만 있음(title/description). 1200×630 PNG 자산 필요(디자인 또는 동적 생성).
-- **위치**: `public/index.html` `<head>`.
+### ~~4. og:image (소셜 공유 대표 이미지)~~ ✅ (2026-06-18)
+- **프리빌트 래스터화로 생성**: `@resvg/resvg-js`(컴파일 없는 프리빌트)로 Studio Noir 1200×630 PNG → `public/assets/og.png`. 생성기 `scripts/gen-og.js`(`npm run gen:og`), 브랜드 폰트는 `scripts/og-fonts/`에 vendoring(Hanken Grotesk 700/400, JetBrains Mono). 웨이브폼(favicon 4-bar 모티프 확장)+액센트 바+콘솔 그리드 디자인.
+- **런타임 무부하**: PNG를 커밋하고 서버는 런타임 래스터화 안 함. resvg는 `optionalDependencies`라 설치 실패해도 배포 안 깨짐(프로덕션은 resvg/폰트 불필요).
+- `index.html <head>`에 og:image(절대 URL)·width/height/type/alt·og:url + twitter `summary_large_image` 태그 추가.
+- 검증: 로컬에서 `/assets/og.png` 200·image/png, 서빙 HTML에 메타 태그 확인. PNG 렌더 육안 확인.
 
 ### ~~5. Contact 이메일 스팸 보호~~ ✅ (2026-06-18)
 - 공개 `GET /api/contact`가 email/phone을 **base64로 난독화**해 반환(평문 `@`·숫자 제거 → 이메일 정규식 스크레이퍼 무력화). headline/location은 비민감이라 평문 유지.

@@ -10,7 +10,8 @@
     "prestart": "npm run build:css",
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "init-db": "node -e \"require('./src/db').init(); console.log('DB initialized')\""
+    "init-db": "node -e \"require('./src/db').init(); console.log('DB initialized')\"",
+    "gen:og": "node scripts/gen-og.js"
   },
   "engines": {
     "node": ">=20"
@@ -30,5 +31,8 @@
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/forms": "^0.5.11",
     "tailwindcss": "^3.4.19"
+  },
+  "optionalDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
   }
 }
