@@ -4,7 +4,17 @@
 > "TODO.md 보고 이어서 하자" 또는 "1순위(썸네일 캐시)부터 하자"라고 하면 됩니다.
 > 진행 이력은 `git log --oneline`으로 확인.
 
-마지막 작업일: 2026-06-17 · 프로덕션: <https://vozong-portfolio.onrender.com> (Render, autoDeploy 정상 — `git push`만 하면 ~1분 내 배포) · 운영 프로젝트 ~436개
+마지막 작업일: 2026-06-18 · 프로덕션: <https://vozong-portfolio.onrender.com> (Render, autoDeploy 정상 — `git push`만 하면 ~1분 내 배포) · 운영 프로젝트 ~436개
+
+---
+
+## ✅ 2026-06-18 — 2순위 + 메인터넌스 패스
+- **#5 Contact 스팸 보호**·**#3 리스트 성능(슬림 페이로드+N+1 제거)**·**#4 og:image**(resvg 프리빌트, `npm run gen:og`) 완료 — 아래 각 항목 참고.
+- **보안: 관리자 게이트 우회 차단** — `express.static` extensions 때문에 `/project-form`·`/contact-form` 맨파일명이 인증 없이 서빙되던 것 차단(게이트에 alias 전부 등록 + robots.txt). 데이터 유출은 없었음(API requireAdmin).
+- **백업 하드닝** — `BACKUP_TOKEN` 상수시간 비교(sha256+timingSafeEqual), 실패 시 `ALERT_WEBHOOK`(Slack/Discord) 통지. render.yaml에 `ALERT_WEBHOOK`(sync:false) 추가 — **대시보드에서 채우면 활성화**.
+- **의존성: googleapis 144→173** — npm audit 0 vulnerabilities. OAuth·Drive end-to-end 재검증.
+- **문구 변경**: "Senior Technical Director" → "Senior Sound Engineer" (정적 HTML·meta·og 이미지). ⚠️ **라이브 contact 헤드라인은 DB 저장값** → 관리자 `Edit Contact` 폼에서 직접 수정 필요(아직 "Technical Director"로 남아있을 수 있음).
+- (보류) 메이저 업글 express5/helmet8/express-rate-limit8/tailwind4, CSP nonce화, db `master` CHECK 정리.
 
 ---
 
