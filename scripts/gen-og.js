@@ -84,7 +84,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" 
   <text x="88" y="300" font-family="Hanken Grotesk" font-weight="700" font-size="128" fill="${C.onSurface}">Kim, Bojong</text>
 
   <!-- role -->
-  <text x="92" y="366" font-family="Hanken Grotesk" font-weight="400" font-size="38" fill="${C.variant}">Senior Technical Director</text>
+  <text x="92" y="366" font-family="Hanken Grotesk" font-weight="400" font-size="38" fill="${C.variant}">Senior Sound Engineer</text>
   <text x="92" y="416" font-family="JetBrains Mono Medium" font-size="26" letter-spacing="1" fill="${C.accentDim}">Mixing / Playback / Live Sound</text>
 
   <!-- hero waveform -->
