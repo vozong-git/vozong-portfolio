@@ -22,8 +22,7 @@ CREATE TABLE IF NOT EXISTS projects (
   title           TEXT    NOT NULL,
   client_name     TEXT,
   completion_date TEXT,                              -- ISO date (YYYY-MM-DD)
-  category        TEXT    NOT NULL DEFAULT 'studio'  -- studio|master|live|playback|custom
-                    CHECK (category IN ('studio','master','live','playback','custom')),
+  category        TEXT    NOT NULL DEFAULT 'studio',  -- validated in routes/projects.js (CATEGORIES)
   custom_category TEXT,                              -- label when category = 'custom'
   tags            TEXT,                              -- comma list, e.g. "MIXING,MASTERING"
   technical_specs TEXT,                              -- Hardware/Software deployment
@@ -86,6 +85,59 @@ function init() {
   const cols = db.prepare('PRAGMA table_info(projects)').all();
   if (!cols.some((c) => c.name === 'youtube_url')) {
     db.exec('ALTER TABLE projects ADD COLUMN youtube_url TEXT');
+  }
+
+  // migration: drop the category CHECK constraint. SQLite can't ALTER a CHECK in
+  // place, so adding/renaming work categories used to require a schema change.
+  // Rebuild the table without it (column names are listed explicitly so the copy
+  // is safe regardless of column order) and let routes/projects.js CATEGORIES be
+  // the single source of truth for valid categories.
+  const t = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='projects'").get();
+  if (t && /CHECK\s*\(\s*category/i.test(t.sql)) {
+    const rebuild = db.transaction(() => {
+      db.exec(`
+        CREATE TABLE projects_new (
+          id              INTEGER PRIMARY KEY AUTOINCREMENT,
+          title           TEXT    NOT NULL,
+          client_name     TEXT,
+          completion_date TEXT,
+          category        TEXT    NOT NULL DEFAULT 'studio',
+          custom_category TEXT,
+          tags            TEXT,
+          technical_specs TEXT,
+          description     TEXT,
+          youtube_url     TEXT,
+          status          TEXT    NOT NULL DEFAULT 'draft'
+                            CHECK (status IN ('draft','published')),
+          sort_order      INTEGER NOT NULL DEFAULT 0,
+          created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+          updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      db.exec(`
+        INSERT INTO projects_new
+          (id, title, client_name, completion_date, category, custom_category,
+           tags, technical_specs, description, youtube_url, status, sort_order, created_at, updated_at)
+        SELECT
+           id, title, client_name, completion_date, category, custom_category,
+           tags, technical_specs, description, youtube_url, status, sort_order, created_at, updated_at
+        FROM projects;
+      `);
+      db.exec('DROP TABLE projects');
+      db.exec('ALTER TABLE projects_new RENAME TO projects');
+    });
+    // FK toggling must happen outside the transaction (assets references projects)
+    db.pragma('foreign_keys = OFF');
+    try {
+      rebuild();
+      const issues = db.pragma('foreign_key_check');
+      if (issues.length) console.error('[migration] FK issues after category rebuild:', issues);
+      else console.log('[migration] dropped projects.category CHECK constraint');
+    } catch (e) {
+      console.error('[migration] category CHECK rebuild failed (kept old schema):', e?.message || e);
+    } finally {
+      db.pragma('foreign_keys = ON');
+    }
   }
   return db;
 }
