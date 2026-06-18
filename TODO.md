@@ -34,9 +34,10 @@
 
 ## 🟡 2순위 (다음 세션 후보)
 
-### 3. Overview 지연 로딩 / 페이지네이션
-- ~436개를 한 번에 받아 렌더(현재 lazy-loading으로 완화). 더 늘면 첫 로딩 부담.
-- **위치**: `public/index.html` `load()`, `src/routes/projects.js` GET. 카테고리별 "더 보기" 또는 `?limit/offset`.
+### 3. Overview 지연 로딩 / 페이지네이션 — ⏩ 핵심 비용은 해소 (2026-06-18)
+- **리스트 직렬화 슬림화 + N+1 제거**: `GET /api/projects`가 리스트엔 스칼라 필드 + `cover_url`만 반환(전체 `assets` 배열·`description`·`specs` 제외). 커버 id는 **단일 SQL 서브쿼리**로 뽑아 기존 프로젝트당 assets 쿼리(436개면 ~437쿼리)를 1쿼리로 축소. 페이로드도 대폭 감소. 상세는 `/:id`가 계속 전체 반환.
+- 검증: 리스트 응답 `assets` 없음·`cover_url` 존재, `/:id` 전체(assets·description) 유지 확인.
+- (남은 옵션) Overview가 전 카테고리를 한 화면에 펼치는 구조라 offset 페이지네이션은 UX와 충돌 → 슬림 페이로드로 첫 로딩 비용 대부분 해소돼 보류. 필요 시 카테고리별 "더 보기"(클라 슬라이스) 추가 가능.
 
 ### 4. og:image (소셜 공유 대표 이미지)
 - 현재 og 텍스트 메타만 있음(title/description). 1200×630 PNG 자산 필요(디자인 또는 동적 생성).

@@ -41,6 +41,26 @@ function serialize(p) {
   };
 }
 
+// Slim serialization for list views (homepage grid + admin table). Both
+// consumers only read scalar fields and cover_url — never the per-asset array
+// or the long-text fields — so we omit those to keep the ~400-project payload
+// small. The cover id is resolved by a single SQL subquery per row inside one
+// statement, replacing the previous N+1 (one assets query per project).
+function serializeListRow(p) {
+  return {
+    id: p.id,
+    title: p.title,
+    client_name: p.client_name,
+    completion_date: p.completion_date,
+    category: p.category,
+    custom_category: p.custom_category,
+    tags: p.tags ? p.tags.split(',').map(s => s.trim()).filter(Boolean) : [],
+    status: p.status,
+    created_at: p.created_at,
+    cover_url: p.cover_asset_id ? `/api/assets/${p.cover_asset_id}/raw` : null,
+  };
+}
+
 function validate(body, { partial = false } = {}) {
   const errors = [];
   const out = {};
@@ -101,11 +121,16 @@ router.get('/', (req, res) => {
     const like = `%${req.query.q}%`;
     params.push(like, like, like);
   }
-  const sql = `SELECT * FROM projects
+  const sql = `SELECT id, title, client_name, completion_date, category, custom_category,
+                      tags, status, created_at,
+                      (SELECT a.id FROM assets a
+                         WHERE a.project_id = projects.id AND a.kind = 'image'
+                         ORDER BY a.is_cover DESC, a.id ASC LIMIT 1) AS cover_asset_id
+               FROM projects
                ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
                ORDER BY sort_order ASC, COALESCE(completion_date, created_at) DESC, id DESC`;
   const rows = db.db.prepare(sql).all(...params);
-  res.json({ projects: rows.map(serialize) });
+  res.json({ projects: rows.map(serializeListRow), total: rows.length });
 });
 
 // GET /api/projects/tags  (admin) — distinct tags, most-recently-used first.
