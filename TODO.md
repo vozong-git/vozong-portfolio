@@ -14,6 +14,7 @@
 - **백업 하드닝** — `BACKUP_TOKEN` 상수시간 비교(sha256+timingSafeEqual), 실패 시 `ALERT_WEBHOOK`(Slack/Discord) 통지. render.yaml에 `ALERT_WEBHOOK`(sync:false) 추가 — **대시보드에서 채우면 활성화**.
 - **의존성: googleapis 144→173** — npm audit 0 vulnerabilities. OAuth·Drive end-to-end 재검증.
 - **문구 변경**: "Senior Technical Director" → "Senior Sound Engineer" (정적 HTML·meta·og 이미지). ⚠️ **라이브 contact 헤드라인은 DB 저장값** → 관리자 `Edit Contact` 폼에서 직접 수정 필요(아직 "Technical Director"로 남아있을 수 있음).
+- **YouTube watch 직링크 해석** — 검색 결과 페이지의 인라인 플레이어가 임베드 비허용 공연 영상에서 오류 나던 문제. `GET /api/youtube/resolve?projectId=`가 "아티스트 곡명"을 YouTube Data API로 상위 영상에 매칭→watch 직링크 반환. 상세보기 버튼이 "검색"→"보기"로 자동 업그레이드. `yt_cache` 테이블에 영구 캐시(프로젝트당 API 1회). **Render env `YOUTUBE_API_KEY` 설정 완료**, 프로덕션 검증 OK(438/437/431 정확 매칭·캐시 적중). 키 없으면 검색 링크로 폴백. 저장된 `youtube_url`은 임베드+watch 폴백 링크 표시.
 - (보류) 메이저 업글 express5/helmet8/express-rate-limit8/tailwind4, CSP nonce화, db `master` CHECK 정리.
 
 ---
