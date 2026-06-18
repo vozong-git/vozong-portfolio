@@ -76,10 +76,11 @@
       <section class="bg-surface-container border border-outline-variant rounded p-6 inner-glow">
         <h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">tune</span> Technical Specifications</h3>
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Work Category Routing</label>
-        <div id="catGroup" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 mb-2">
+        <div id="catGroup" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mt-2 mb-2">
           <button type="button" data-cat="studio"   class="cat-btn">Studio Work</button>
-          <button type="button" data-cat="live"     class="cat-btn">Live Sound</button>
           <button type="button" data-cat="playback" class="cat-btn">Playback</button>
+          <button type="button" data-cat="livetune" class="cat-btn">Live Tune</button>
+          <button type="button" data-cat="live"     class="cat-btn">Live Sound</button>
           <button type="button" data-cat="custom"   class="cat-btn">Custom</button>
         </div>
         <input id="f_custom_cat" placeholder="Custom category name" hidden class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
@@ -99,8 +100,14 @@
         <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Project Description / Technical Notes</label>
         <textarea id="f_desc" rows="4" placeholder="Enter routing notes, specific plugin chains, or client feedback…" class="w-full mt-1 mb-4 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"></textarea>
 
-        <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">YouTube Link (optional)</label>
+        <div class="flex items-center justify-between gap-2">
+          <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">YouTube Link (optional)</label>
+          <button type="button" id="ytFindBtn" class="font-label-caps text-[10px] px-2 py-1 rounded border border-outline-variant text-on-surface-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim transition-colors flex items-center gap-1 shrink-0">
+            <span class="material-symbols-outlined text-[14px]">smart_display</span> <span id="ytFindLabel">영상 자동 찾기</span>
+          </button>
+        </div>
         <input id="f_youtube" placeholder="https://youtu.be/…  or  https://www.youtube.com/watch?v=…" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+        <div id="ytPreview" hidden class="mt-2"></div>
       </section>
     </div>
 
@@ -255,6 +262,7 @@
       $('f_custom_cat').value = p.custom_category || '';
       setCategory(p.category || 'studio');
       renderExisting(p.assets || []);
+      renderYtPreview();
     } catch (e) { SN.toast(e.message, 'err'); }
   }
 
@@ -311,6 +319,48 @@
   $('tagSuggestions').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-tag]'); if (!b) return;
     addTag(b.dataset.tag);
+  });
+
+  // ── YouTube: auto-find the video + show a thumbnail to confirm ──
+  function ytId(url) {
+    if (!url) return null;
+    const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
+    return m ? m[1] : null;
+  }
+  function renderYtPreview() {
+    const id = ytId($('f_youtube').value.trim());
+    const box = $('ytPreview');
+    if (!id) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = `
+      <div class="flex gap-3 items-center bg-surface-container-lowest border border-outline-variant rounded p-2">
+        <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" alt="" class="w-28 rounded border border-outline-variant"/>
+        <div class="flex flex-col gap-1 font-metadata-sm text-[11px]">
+          <span class="text-on-surface-variant">저장하면 상세 페이지에서 임베드 재생됩니다.</span>
+          <a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener" class="text-primary-fixed-dim hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">open_in_new</span> YouTube에서 열어 확인</a>
+        </div>
+      </div>`;
+  }
+  $('f_youtube').addEventListener('input', renderYtPreview);
+  $('ytFindBtn').addEventListener('click', async () => {
+    const title = $('f_title').value.trim();
+    const q = [$('f_client').value.trim(), title].filter(Boolean).join(' ').trim();
+    if (!title) { SN.toast('먼저 제목을 입력하세요', 'err'); $('f_title').focus(); return; }
+    const btn = $('ytFindBtn'); btn.disabled = true; btn.classList.add('opacity-60');
+    $('ytFindLabel').textContent = '찾는 중…';
+    try {
+      const r = await SN.api('GET', `/api/youtube/resolve?q=${encodeURIComponent(q)}`);
+      if (r.videoId) {
+        $('f_youtube').value = `https://www.youtube.com/watch?v=${r.videoId}`;
+        renderYtPreview();
+        SN.toast('영상을 찾았습니다 — 맞는지 확인 후 저장하세요');
+      } else if (r.reason === 'no_api_key') {
+        SN.toast('서버에 YOUTUBE_API_KEY가 설정되지 않았습니다', 'err');
+      } else {
+        SN.toast('영상을 찾지 못했습니다', 'err');
+      }
+    } catch (e) { SN.toast(e.message, 'err'); }
+    finally { btn.disabled = false; btn.classList.remove('opacity-60'); $('ytFindLabel').textContent = '영상 자동 찾기'; }
   });
 
   // ── submit ──

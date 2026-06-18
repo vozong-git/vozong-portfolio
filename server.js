@@ -29,7 +29,7 @@ app.use(helmet({
       'script-src': ["'self'", "'unsafe-inline'"],
       'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       'font-src': ["'self'", 'https://fonts.gstatic.com'],
-      'img-src': ["'self'", 'data:', 'blob:'],
+      'img-src': ["'self'", 'data:', 'blob:', 'https://i.ytimg.com', 'https://img.youtube.com'],
       'connect-src': ["'self'"],
       'frame-src': ['https://www.youtube-nocookie.com', 'https://www.youtube.com'],
       'frame-ancestors': ["'none'"],
