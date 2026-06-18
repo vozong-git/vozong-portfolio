@@ -55,7 +55,7 @@
           </div>
           <div>
             <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Target Completion Date</label>
-            <input id="f_date" type="date" min="1900-01-01" max="2099-12-31" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface focus:border-primary-fixed-dim focus:ring-0"/>
+            <input id="f_date" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" autocomplete="off" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
           </div>
         </div>
       </section>
@@ -165,6 +165,15 @@
     const text = (cd ? cd.getData('text') : '').trim();
     const m = text.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
     if (m) { e.preventDefault(); $('f_date').value = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`; }
+  });
+  // type digits and the dashes are inserted automatically, so entry flows
+  // year (4) → month (2) → day (2) without tabbing between segments.
+  $('f_date').addEventListener('input', () => {
+    const d = $('f_date').value.replace(/\D/g, '').slice(0, 8);
+    let out = d;
+    if (d.length > 4) out = d.slice(0, 4) + '-' + d.slice(4, 6);
+    if (d.length > 6) out += '-' + d.slice(6, 8);
+    $('f_date').value = out;
   });
 
   // ── file picking / drag&drop ──
