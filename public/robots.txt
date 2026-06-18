@@ -2,7 +2,11 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /admin.html
+Disallow: /new
+Disallow: /project-form
 Disallow: /project-form.html
+Disallow: /contact-edit
+Disallow: /contact-form
 Disallow: /contact-form.html
 Disallow: /login.html
 Disallow: /api/

@@ -68,9 +68,12 @@ function gateAdminPage(file) {
     res.sendFile(path.join(__dirname, 'public', file));
   };
 }
+// NB: list every alias that resolves to each file — including the bare basename,
+// because express.static({ extensions: ['html'] }) below would otherwise serve
+// e.g. GET /project-form → project-form.html unauthenticated, bypassing the gate.
 app.get(['/admin', '/admin.html'], gateAdminPage('admin.html'));
-app.get(['/new', '/project-form.html'], gateAdminPage('project-form.html'));
-app.get(['/contact-edit', '/contact-form.html'], gateAdminPage('contact-form.html'));
+app.get(['/new', '/project-form', '/project-form.html'], gateAdminPage('project-form.html'));
+app.get(['/contact-edit', '/contact-form', '/contact-form.html'], gateAdminPage('contact-form.html'));
 
 // ── static frontend (public assets + non-gated pages) ──
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
