@@ -173,8 +173,16 @@
     // No saved video? Offer a YouTube search for "artist title" (opens in a new
     // tab — YouTube blocks embedding its search results in an iframe).
     const searchQ = encodeURIComponent([p.client_name, p.title].filter(Boolean).join(' ').trim());
+    // Embed inline, but always offer a watch-page link below: many official
+    // performance videos disable embedding and error in the inline player —
+    // the same video plays fine on its full YouTube watch page.
     const ytBlock = yt
-      ? `<div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe src="https://www.youtube.com/embed/${yt}" class="w-full h-full" title="YouTube video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
+      ? `<div class="flex flex-col gap-2">
+           <div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe src="https://www.youtube.com/embed/${yt}" class="w-full h-full" title="YouTube video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+           <a href="https://www.youtube.com/watch?v=${yt}" target="_blank" rel="noopener"
+              class="flex items-center justify-center gap-2 font-metadata-sm text-metadata-sm text-on-surface-variant hover:text-primary-fixed-dim transition-colors">
+              <span class="material-symbols-outlined text-base">open_in_new</span> 영상이 안 보이면 YouTube에서 보기</a>
+         </div>`
       : (searchQ
         ? `<a href="https://www.youtube.com/results?search_query=${searchQ}" target="_blank" rel="noopener"
              class="flex items-center justify-center gap-2 bg-surface-container border border-outline-variant rounded py-3 font-label-caps text-label-caps text-on-surface-variant hover:text-primary-fixed-dim hover:border-primary-fixed-dim transition-colors">
