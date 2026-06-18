@@ -123,6 +123,9 @@
         <button id="submitBtn" class="w-full bg-primary-fixed-dim text-on-primary-fixed font-label-caps text-label-caps py-3 rounded flex items-center justify-center gap-2 hover:opacity-90 transition-opacity glow-bloom">
           <span class="material-symbols-outlined text-sm">power_settings_new</span> <span id="submitLabel">INITIALIZE UPLOAD</span>
         </button>
+        <button id="nextBtn" class="w-full mt-2 border border-primary-fixed-dim/50 text-primary-fixed-dim font-label-caps text-label-caps py-2.5 rounded flex items-center justify-center gap-2 hover:bg-primary-container/10 transition-colors">
+          <span class="material-symbols-outlined text-sm">skip_next</span> <span id="nextLabel">SAVE &amp; NEXT</span>
+        </button>
         <button id="deleteBtn" hidden class="w-full mt-2 border border-error/40 text-error font-label-caps text-label-caps py-2 rounded hover:bg-error/10 transition-colors">DELETE PROJECT</button>
       </section>
     </div>
@@ -372,13 +375,19 @@
   });
 
   // ── submit ──
-  $('submitBtn').addEventListener('click', async () => {
-    const title = $('f_title').value.trim();
-    if (!title) { SN.toast('Project Title is required', 'err'); $('f_title').focus(); return; }
-    if (category === 'custom' && !$('f_custom_cat').value.trim()) {
-      SN.toast('Custom category name is required', 'err'); $('f_custom_cat').focus(); return;
-    }
+  function setBusy(on) {
+    [$('submitBtn'), $('nextBtn')].forEach(b => { b.disabled = on; b.classList.toggle('opacity-60', on); });
+  }
 
+  // Validate + create/patch + upload files. Returns the project id, or null on
+  // failure (a toast is shown and the buttons are re-enabled). `busyLabel` is the
+  // label span of whichever button was pressed, so it can show progress.
+  async function save(busyLabel) {
+    const title = $('f_title').value.trim();
+    if (!title) { SN.toast('Project Title is required', 'err'); $('f_title').focus(); return null; }
+    if (category === 'custom' && !$('f_custom_cat').value.trim()) {
+      SN.toast('Custom category name is required', 'err'); $('f_custom_cat').focus(); return null;
+    }
     const payload = {
       title,
       client_name: $('f_client').value.trim(),
@@ -391,8 +400,9 @@
       youtube_url: $('f_youtube').value.trim(),
       status: $('f_status').value,
     };
-
-    const btn = $('submitBtn'); btn.disabled = true; btn.classList.add('opacity-60');
+    const restore = busyLabel ? busyLabel.textContent : '';
+    setBusy(true);
+    if (busyLabel) busyLabel.textContent = 'SAVING…';
     try {
       let projectId = editId;
       if (editId) {
@@ -401,20 +411,50 @@
         const { project } = await SN.api('POST', '/api/projects', payload);
         projectId = project.id;
       }
-
       if (pendingFiles.length) {
-        $('submitLabel').textContent = 'UPLOADING…';
+        if (busyLabel) busyLabel.textContent = 'UPLOADING…';
         const fd = new FormData();
         fd.append('project_id', projectId);
         pendingFiles.forEach(f => fd.append('files', f));
         await SN.api('POST', '/api/upload', fd, true);
       }
       SN.toast('Saved');
-      setTimeout(() => location.href = '/admin.html', 700);
+      return projectId;
     } catch (err) {
       SN.toast(err.message, 'err');
-      btn.disabled = false; btn.classList.remove('opacity-60');
-      $('submitLabel').textContent = editId ? 'SAVE CHANGES' : 'INITIALIZE UPLOAD';
+      setBusy(false);
+      if (busyLabel) busyLabel.textContent = restore;
+      return null;
+    }
+  }
+
+  // the project id that follows the current one in the admin list order
+  async function nextProjectId(currentId) {
+    try {
+      const { projects } = await SN.api('GET', '/api/projects');
+      const ids = projects.map(p => String(p.id));
+      const i = ids.indexOf(String(currentId));
+      return (i >= 0 && i < ids.length - 1) ? ids[i + 1] : null;
+    } catch { return null; }
+  }
+
+  // Save → back to the dashboard
+  $('submitBtn').addEventListener('click', async () => {
+    const id = await save($('submitLabel'));
+    if (id != null) setTimeout(() => location.href = '/admin.html', 600);
+  });
+
+  // Save → continue: next project to edit (edit mode) or a fresh form (new mode)
+  $('nextBtn').addEventListener('click', async () => {
+    const id = await save($('nextLabel'));
+    if (id == null) return;
+    if (editId) {
+      const nid = await nextProjectId(editId);
+      if (nid) { location.href = `/project-form.html?id=${nid}`; return; }
+      SN.toast('마지막 프로젝트입니다');
+      setTimeout(() => location.href = '/admin.html', 800);
+    } else {
+      location.href = '/project-form.html'; // fresh blank form for the next entry
     }
   });
 
