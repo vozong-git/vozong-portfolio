@@ -63,8 +63,7 @@
       <div class="flex gap-2 flex-wrap" id="catTabs">
         <button data-c="" class="ctab font-label-caps text-[10px] px-3 py-1 rounded text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim">ALL TYPES</button>
         <button data-c="studio" class="ctab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">STUDIO WORK</button>
-        <button data-c="playback" class="ctab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">PLAYBACK</button>
-        <button data-c="livetune" class="ctab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">LIVE TUNE</button>
+        <button data-c="playback" class="ctab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">PLAYBACK &amp; LIVE TUNE</button>
         <button data-c="live" class="ctab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">LIVE SOUND</button>
       </div>
     </div>
@@ -110,7 +109,7 @@
 
   let filter = '';
   let catFilter = '';
-  const TYPE_COLOR = { live: 'text-secondary-container', playback: 'text-tertiary-container', livetune: 'text-primary-fixed-dim' };
+  const TYPE_COLOR = { live: 'text-secondary-container', playback: 'text-tertiary-container' };
 
   function statusChip(s) {
     return s === 'published'

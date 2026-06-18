@@ -5,7 +5,7 @@ const { requireAdmin } = require('../auth');
 
 const router = express.Router();
 
-const CATEGORIES = ['studio', 'playback', 'livetune', 'live', 'custom'];
+const CATEGORIES = ['studio', 'playback', 'live', 'custom'];
 const STATUSES = ['draft', 'published'];
 
 function serialize(p) {

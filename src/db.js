@@ -139,6 +139,12 @@ function init() {
       db.pragma('foreign_keys = ON');
     }
   }
+
+  // migration: the short-lived 'livetune' category was merged back into
+  // 'playback' (now labelled "Playback & Live Tune"). Idempotent — no-op once
+  // no rows remain.
+  db.prepare("UPDATE projects SET category = 'playback' WHERE category = 'livetune'").run();
+
   return db;
 }
 

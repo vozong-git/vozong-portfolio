@@ -1,6 +1,6 @@
 /* Studio Noir — shared client helpers */
 const SN = {
-  CATEGORY_LABELS: { studio: 'Studio Work', playback: 'Playback', livetune: 'Live Tune', live: 'Live Sound', custom: 'Custom' },
+  CATEGORY_LABELS: { studio: 'Studio Work', playback: 'Playback & Live Tune', live: 'Live Sound', custom: 'Custom' },
 
   async api(method, url, body, isForm = false) {
     const opts = { method, headers: {}, credentials: 'same-origin' };
