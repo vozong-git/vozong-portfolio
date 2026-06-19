@@ -52,7 +52,7 @@
 </nav>
 
 <main class="flex-1 md:ml-64 p-gutter max-w-container-max mx-auto w-full">
-  <header style="transform:translateZ(0);-webkit-transform:translateZ(0)" class="md:hidden sticky top-0 z-30 bg-background pt-3 flex justify-between items-center w-full pb-stack-sm mb-stack-md border-b border-outline-variant">
+  <header id="mobileHeader" style="transform:translateZ(0);-webkit-transform:translateZ(0)" class="md:hidden sticky top-0 z-30 bg-background pt-3 flex justify-between items-center w-full pb-stack-sm mb-stack-md border-b border-outline-variant">
     <h1 class="font-display-lg text-headline-lg-mobile text-primary-fixed-dim">Kim, Bojong</h1>
   </header>
 
@@ -106,6 +106,19 @@
       </section>`;
   }
 
+  // iOS Safari can paint freshly-injected cards over the sticky mobile header
+  // on the very first render; force a reflow/recomposite (what any interaction
+  // would trigger) so the header sits back on top.
+  function nudgeMobileHeader() {
+    const h = document.getElementById('mobileHeader');
+    if (!h) return;
+    requestAnimationFrame(() => {
+      h.style.transform = 'none';
+      void h.offsetHeight; // force synchronous reflow
+      h.style.transform = 'translateZ(0)';
+    });
+  }
+
   async function load(cat) {
     activeCat = cat; setActive(cat);
     area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>`;
@@ -122,6 +135,7 @@
         if (others.length) html += section('Other', others);
         area.innerHTML = html;
       }
+      nudgeMobileHeader();
     } catch (e) {
       area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-error">${SN.escape(e.message)}</p>`;
     }
