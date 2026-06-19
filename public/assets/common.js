@@ -98,6 +98,11 @@ const SN = {
      without iOS's tap-status-bar-to-top (e.g. Android) */
   initScrollTop() {
     if (document.getElementById('scrollTopBtn')) return;
+    // iOS (iPhone/iPad) already has tap-status-bar-to-top, so skip the button there
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) return;
     const btn = document.createElement('button');
     btn.id = 'scrollTopBtn';
     btn.setAttribute('aria-label', '맨 위로');
