@@ -16,16 +16,16 @@ const H = 630;
 const FONT_DIR = path.join(__dirname, 'og-fonts');
 const OUT = path.join(__dirname, '..', 'public', 'assets', 'og.png');
 
-// Studio Noir palette (matches tailwind.config.js / theme tokens)
+// Warm light palette (matches tailwind.config.js: cream + Claude coral)
 const C = {
-  bgTop: '#0c0d0f',
-  bgBottom: '#15161a',
-  grid: '#23262b',
-  accent: '#00daf3',
-  accentDim: '#5fe6f6',
-  onSurface: '#ECEEF0',
-  variant: '#9aa0a6',
-  outline: '#33373d',
+  bgTop: '#FAF9F5',
+  bgBottom: '#F1EEE7',
+  grid: '#E6E2D8',
+  accent: '#C15F3C',
+  accentDim: '#C15F3C',
+  onSurface: '#2A2824',
+  variant: '#6B6862',
+  outline: '#E0DCD0',
 };
 
 // Deterministic equalizer waveform (the favicon's 4-bar motif, scaled up).
