@@ -79,6 +79,7 @@
   if (me.isAdmin) document.getElementById('adminLink').hidden = false;
 
   let activeCat = '';
+  let savedList = null; // list HTML + scroll position to restore after a detail view
   const area = document.getElementById('projectArea');
   const CATS = [
     { key: 'studio', label: 'Studio Work' },
@@ -143,7 +144,12 @@
   area.addEventListener('click', (e) => {
     const card = e.target.closest('article[data-id]');
     if (card) { openDetail(card.dataset.id); return; }
-    if (e.target.closest('#backBtn')) { load(activeCat); return; }
+    if (e.target.closest('#backBtn')) {
+      // return to the exact list + scroll position from before the detail view
+      if (savedList) { area.innerHTML = savedList.html; window.scrollTo(0, savedList.y); savedList = null; }
+      else load(activeCat);
+      return;
+    }
     const thumb = e.target.closest('button[data-img]');
     if (thumb) {
       const m = document.getElementById('detailMain'); if (m) m.src = thumb.dataset.img + '?thumb=800';
@@ -158,6 +164,8 @@
   }
 
   async function openDetail(id) {
+    // remember the current list + scroll so "Back to list" can restore it
+    savedList = { html: area.innerHTML, y: window.scrollY || document.documentElement.scrollTop || 0 };
     area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>`;
     try {
       const { project: p } = await SN.api('GET', `/api/projects/${id}`);
@@ -271,7 +279,7 @@
   // deep link: /?project=<id> opens that project's detail directly (admins can
   // preview drafts this way from the dashboard; also a shareable detail link).
   const previewId = new URLSearchParams(location.search).get('project');
-  if (previewId) openDetail(previewId);
+  if (previewId) { openDetail(previewId); savedList = null; } // no prior list → Back loads overview
   else load('');
 })();
 </script>
