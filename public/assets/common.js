@@ -69,16 +69,24 @@ const SN = {
   /* mobile off-canvas sidebar: inject a hamburger + overlay, wire toggling */
   initSidebar() {
     const nav = document.getElementById('sideNav');
-    if (!nav || document.getElementById('navToggle')) return;
-    const btn = document.createElement('button');
-    btn.id = 'navToggle';
-    btn.setAttribute('aria-label', 'Toggle navigation');
-    btn.className = 'md:hidden fixed top-3 right-3 z-[60] bg-surface-container border border-outline-variant rounded p-2 text-primary-fixed-dim inner-glow';
-    btn.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+    if (!nav || nav.dataset.sbInit) return;
+    nav.dataset.sbInit = '1';
+    // Use an in-markup #navToggle if the page provides one (e.g. the public
+    // header integrates the hamburger into its bar); otherwise inject a
+    // floating one (admin/editor pages).
+    let btn = document.getElementById('navToggle');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'navToggle';
+      btn.setAttribute('aria-label', 'Toggle navigation');
+      btn.className = 'md:hidden fixed top-3 right-3 z-[60] bg-surface-container border border-outline-variant rounded p-2 text-primary-fixed-dim inner-glow';
+      btn.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+      document.body.appendChild(btn);
+    }
     const overlay = document.createElement('div');
     overlay.id = 'navOverlay';
     overlay.className = 'md:hidden fixed inset-0 bg-background/70 z-40 opacity-0 pointer-events-none transition-opacity duration-200';
-    document.body.append(btn, overlay);
+    document.body.appendChild(overlay);
     const close = () => { nav.classList.add('-translate-x-full'); overlay.classList.add('opacity-0', 'pointer-events-none'); };
     const open = () => { nav.classList.remove('-translate-x-full'); overlay.classList.remove('opacity-0', 'pointer-events-none'); };
     btn.addEventListener('click', () => (nav.classList.contains('-translate-x-full') ? open() : close()));
