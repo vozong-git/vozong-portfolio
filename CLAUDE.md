@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-사운드 엔지니어 포트폴리오 — Studio Noir 테마. Node.js/Express 백엔드 + 정적 프론트엔드. 관리자 1인 전용.
+사운드 엔지니어 포트폴리오 — 따뜻한 라이트 테마(크림 배경 + 클로드 코랄 액센트). Node.js/Express 백엔드 + 정적 프론트엔드. 관리자 1인 전용.
 
 ## 명령어
 
@@ -25,7 +25,9 @@ node --check server.js # 문법 체크
 | `BASE_URL` | 기본 `http://localhost:3000`. OAuth redirect 계산에 사용 |
 | `DRIVE_IMAGE_FOLDER` | 기본 `portfolio_image` |
 | `DRIVE_AUDIO_FOLDER` | 기본 `portfolio_audio` |
-| `MAX_UPLOAD_MB` | 기본 500 |
+| `MAX_UPLOAD_MB` | 기본 100 |
+| `YOUTUBE_API_KEY` | (선택) YouTube Data API v3 키. 상세페이지 "아티스트 곡명"→실제 영상 watch 링크 해석용. 없으면 검색 링크 폴백 |
+| `BACKUP_TOKEN` / `ALERT_WEBHOOK` | cron 백업 트리거 공유 토큰 / (선택) 백업 실패 알림 Slack·Discord 웹훅 |
 | `DB_PATH` | SQLite 파일 경로 |
 
 Google Cloud 셋업(OAuth 클라이언트 생성 / Drive API 활성화 / 동의화면 테스트 사용자에 본인 계정 추가 / redirect URI `${BASE_URL}/api/auth/google/callback`)은 README.md 참고.
@@ -36,26 +38,30 @@ Google Cloud 셋업(OAuth 클라이언트 생성 / Drive API 활성화 / 동의�
 server.js          진입점. helmet CSP, rate limit, 라우트 마운트, 정적 서빙.
 src/
   config.js        설정 로더, assertGoogleConfigured
-  db.js            better-sqlite3. 스키마(projects/assets/timeline/admin_state) + AES-256-GCM enc/dec
+  db.js            better-sqlite3. 스키마(projects/assets/contact/admin_state/yt_cache) + AES-256-GCM enc/dec + 마이그레이션(category CHECK 제거 등)
   auth.js          /me /google /google/callback /logout. JWT 발급/검증. requireAdmin 미들웨어
   drive.js         oauthClient, ensureFolder(image|audio), uploadFile, getFileStream, getThumbnail(Buffer), uploadBackup, deleteFile
   cache.js         썸네일 디스크 캐시(data/cache/thumbs, Render: /var/data/cache/thumbs). get/put/delThumb
   routes/
-    projects.js    CRUD + 직렬화(cover_url, assets). 방문자=published만 / 관리자=status·category·q 필터
+    projects.js    CRUD + 슬림 리스트 직렬화(스칼라+cover_url, N+1 제거) / 상세=전체(assets). 방문자=published만 / 관리자=status·category·q
     upload.js      POST /api/upload → Drive. 첫 이미지 자동 커버. drive 미연결 시 409
-    assets.js      raw 스트림 프록시(+?thumb= 디스크 캐시), PATCH /:id/cover, DELETE /:id
-    backup.js      POST /api/backup(admin) → SQLite .backup() → Drive portfolio_backup. runBackup() 공유
-    timeline.js    Live Sound 타임라인 CRUD
-scripts/backup.js  cron용 standalone 백업 러너 (node scripts/backup.js)
+    assets.js      raw 스트림 프록시(+?thumb= 디스크 캐시: 120/160/200/320/400/640/800), PATCH /:id/cover, DELETE /:id
+    contact.js     공개 GET(이메일/전화 base64 난독화) + 관리자 GET /full(평문) + PUT
+    backup.js      POST /api/backup(admin 또는 X-Backup-Token, 상수시간 비교) → SQLite .backup() → Drive portfolio_backup
+    youtube.js     GET /api/youtube/resolve — projectId(공개,캐시) / q=(관리자) "아티스트 곡명"→영상 id. yt_cache 영구 캐시
+scripts/
+  backup.js        cron용 standalone 백업 러너
+  trigger-backup.js Render cron이 web /api/backup을 HTTP 트리거(디스크 공유 불가). 실패 시 ALERT_WEBHOOK
+  gen-og.js        og:image 생성(@resvg/resvg-js, og-fonts/ vendoring). npm run gen:og → public/assets/og.png
 public/            정적 프론트(Tailwind CLI 빌드, Play-CDN 제거)
-  index.html       공개 포트폴리오
+  index.html       공개 포트폴리오 (?project=<id> 딥링크로 상세 직접 열기)
   login.html       구글 로그인
-  admin.html       대시보드(관리 테이블, publish 토글, 필터, drive 연결 상태)
-  project-form.html 등록/수정 (?id= 수정모드)
-  contact.html
+  admin.html       대시보드(관리 테이블, publish 토글, 필터 sessionStorage 유지, 제목→상세 미리보기, 태그·유튜브 아이콘)
+  project-form.html 등록/수정 (?id= 수정모드). Save/Save&Next/Discard/Discard&Next, 날짜 자동포맷, YouTube 자동찾기, 데스크탑 sticky 액션패널
+  contact.html / contact-form.html
   assets/{app.css(빌드 산출물·gitignore), common.js}
-tailwind.config.js 디자인 토큰(구 theme.js에서 이전) + content scan
-src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS, 구 base.css 통합)
+tailwind.config.js 디자인 토큰(라이트 팔레트) + content scan
+src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS: inner-glow/glow-bloom/console-grid/toast)
 ```
 
 ### 데이터 흐름 핵심
@@ -71,12 +77,13 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS, 구 base.css 통�
 - 이미지 안 보이면 대개 raw 프록시 또는 드라이브 미연결 문제. 공개 URL 아님을 기억.
 - 비밀값(`.env`)·`node_modules`·`data/*.db`는 커밋/패키지 제외.
 
-## 디자인 토큰 (Studio Noir)
+## 디자인 토큰 (따뜻한 라이트)
 
-- 액센트 Electric Blue `#00daf3`, 다크 슬레이트 팔레트
+- 배경 크림 `#FAF9F5`(완전 흰색 아님), 본문 `#2A2824`/보조 `#6B6862`, 카드 `#FCFBF8`
+- 액센트 **클로드 코랄 `#C15F3C`** (링크·활성·기본 버튼). 카테고리·태그는 중성 그레이로 통일(코랄이 유일 액센트)
 - 폰트: Hanken Grotesk(제목) / Inter(본문) / JetBrains Mono(스펙·수치)
-- 무드: K-스타일 랙마운트 콘솔(console-grid, inner-glow)
-- 토큰은 `public/assets/theme.js`(Tailwind config) + `base.css`에 정의
+- 토큰은 `tailwind.config.js`(colors), 커스텀 효과는 `src/styles/app.css`에 정의. 의미론적 토큰(background/on-surface/surface-container/primary-fixed-dim 등)이라 토큰 값만 바꾸면 전 페이지 일괄 전환
+- favicon(`public/favicon.svg`)·og(`public/assets/og.png`)도 코랄 톤
 
 ## 검증 상태
 
