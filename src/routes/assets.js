@@ -3,7 +3,7 @@ const express = require('express');
 const db = require('../db');
 const drive = require('../drive');
 const cache = require('../cache');
-const { requireAdmin } = require('../auth');
+const { requireAdmin, isAdminUser } = require('../auth');
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ router.get('/:id/raw', async (req, res) => {
   if (!asset) return res.status(404).end();
 
   // hide assets of unpublished projects from non-admins
-  const isAdmin = req.user && req.user.role === 'admin';
+  const isAdmin = isAdminUser(req.user);
   if (asset.project_status !== 'published' && !isAdmin) return res.status(404).end();
 
   // thumbnail (images only): served from a disk cache; on miss we fetch the

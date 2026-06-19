@@ -34,6 +34,15 @@ function readSession(req) {
   }
 }
 
+function isAdminUser(user) {
+  return !!(
+    user &&
+    user.role === 'admin' &&
+    user.email &&
+    user.email.toLowerCase() === config.adminEmail
+  );
+}
+
 /** Express middleware: attaches req.user (or null). */
 function attachUser(req, _res, next) {
   req.user = readSession(req);
@@ -43,7 +52,7 @@ function attachUser(req, _res, next) {
 /** Express middleware: require an authenticated admin. */
 function requireAdmin(req, res, next) {
   const user = req.user || readSession(req);
-  if (!user || user.role !== 'admin' || user.email !== config.adminEmail) {
+  if (!isAdminUser(user)) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   next();
@@ -60,7 +69,7 @@ router.get('/me', (req, res) => {
     email: user.email,
     name: user.name,
     picture: user.picture,
-    isAdmin: user.email === config.adminEmail,
+    isAdmin: isAdminUser(user),
   });
 });
 
@@ -122,4 +131,4 @@ router.post('/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-module.exports = { router, attachUser, requireAdmin, readSession };
+module.exports = { router, attachUser, requireAdmin, readSession, isAdminUser };

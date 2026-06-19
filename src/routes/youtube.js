@@ -1,6 +1,7 @@
 'use strict';
 const express = require('express');
 const db = require('../db');
+const { isAdminUser } = require('../auth');
 
 const router = express.Router();
 
@@ -40,8 +41,7 @@ async function lookup(q) {
 //                               arbitrary queries can't drain the API quota.
 router.get('/resolve', async (req, res) => {
   if (req.query.q != null) {
-    const isAdmin = req.user && req.user.role === 'admin';
-    if (!isAdmin) return res.status(401).json({ error: 'unauthorized' });
+    if (!isAdminUser(req.user)) return res.status(401).json({ error: 'unauthorized' });
     const q = String(req.query.q).trim().slice(0, 200);
     if (!q) return res.status(400).json({ error: 'q_required' });
     return res.json(await lookup(q));
@@ -53,7 +53,7 @@ router.get('/resolve', async (req, res) => {
   const p = db.db.prepare('SELECT id, client_name, title, status, youtube_url FROM projects WHERE id = ?').get(id);
   if (!p) return res.status(404).json({ error: 'not_found' });
 
-  const isAdmin = req.user && req.user.role === 'admin';
+  const isAdmin = isAdminUser(req.user);
   if (p.status !== 'published' && !isAdmin) return res.status(404).json({ error: 'not_found' });
 
   // an admin-saved link always wins — no need to resolve

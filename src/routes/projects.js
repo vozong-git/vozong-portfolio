@@ -1,12 +1,28 @@
 'use strict';
 const express = require('express');
 const db = require('../db');
-const { requireAdmin } = require('../auth');
+const { requireAdmin, isAdminUser } = require('../auth');
 
 const router = express.Router();
 
 const CATEGORIES = ['studio', 'playback', 'live', 'custom'];
 const STATUSES = ['draft', 'published'];
+
+function isValidIsoDate(value) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return false;
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day;
+}
+
+function hasYoutubeVideoId(url) {
+  return /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))[\w-]{11}/i.test(url);
+}
 
 function serialize(p) {
   if (!p) return null;
@@ -77,6 +93,7 @@ function validate(body, { partial = false } = {}) {
   if (has('completion_date')) {
     const d = (body.completion_date ?? '').toString().trim();
     if (d && !/^\d{4}-\d{2}-\d{2}$/.test(d)) errors.push('completion_date must be YYYY-MM-DD');
+    else if (d && !isValidIsoDate(d)) errors.push('completion_date must be a valid date');
     out.completion_date = d || null;
   }
   if (!partial || has('category')) {
@@ -91,7 +108,13 @@ function validate(body, { partial = false } = {}) {
   }
   if (has('technical_specs')) out.technical_specs = (body.technical_specs ?? '').toString().trim() || null;
   if (has('description')) out.description = (body.description ?? '').toString().trim() || null;
-  if (has('youtube_url')) out.youtube_url = (body.youtube_url ?? '').toString().trim() || null;
+  if (has('youtube_url')) {
+    const url = (body.youtube_url ?? '').toString().trim();
+    if (url && !hasYoutubeVideoId(url)) {
+      errors.push('youtube_url must be a YouTube video URL');
+    }
+    out.youtube_url = url || null;
+  }
   if (has('status')) {
     const s = (body.status || 'draft').toString().trim().toLowerCase();
     if (!STATUSES.includes(s)) errors.push(`status must be one of ${STATUSES.join(', ')}`);
@@ -105,7 +128,7 @@ function validate(body, { partial = false } = {}) {
 // GET /api/projects?status=&category=&q=
 // Visitors only ever receive published projects; admins can request all.
 router.get('/', (req, res) => {
-  const isAdmin = req.user && req.user.email && req.user.role === 'admin';
+  const isAdmin = isAdminUser(req.user);
   const where = [];
   const params = [];
 
@@ -155,7 +178,7 @@ router.get('/tags', requireAdmin, (req, res) => {
 router.get('/:id', (req, res) => {
   const row = db.db.prepare('SELECT * FROM projects WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ error: 'not_found' });
-  const isAdmin = req.user && req.user.role === 'admin';
+  const isAdmin = isAdminUser(req.user);
   if (row.status !== 'published' && !isAdmin) return res.status(404).json({ error: 'not_found' });
   res.json({ project: serialize(row) });
 });

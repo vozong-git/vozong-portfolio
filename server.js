@@ -98,11 +98,27 @@ process.on('uncaughtException', (err) => console.error('[uncaughtException]', er
 // Bind explicitly to 0.0.0.0 so Render (and other PaaS) detect the open port
 // immediately — without this Node may bind IPv6-only and Render reports
 // "no-server" for several minutes after each deploy.
-app.listen(config.port, '0.0.0.0', () => {
-  console.log(`\n  Studio Noir Portfolio`);
-  console.log(`  ▸ ${config.baseUrl}  (env: ${config.env})`);
-  console.log(`  ▸ admin: ${config.adminEmail || '(ADMIN_EMAIL not set)'}`);
-  console.log(`  ▸ drive image folder: ${config.drive.imageFolder}\n`);
-});
+function start() {
+  return app.listen(config.port, '0.0.0.0', () => {
+    console.log(`\n  Studio Noir Portfolio`);
+    console.log(`  ▸ ${config.baseUrl}  (env: ${config.env})`);
+    console.log(`  ▸ admin: ${config.adminEmail || '(ADMIN_EMAIL not set)'}`);
+    console.log(`  ▸ drive image folder: ${config.drive.imageFolder}\n`);
+
+    if (config.isProd) {
+      if (config.sessionSecret === 'insecure-dev-secret-change-me') {
+        console.warn('  ⚠️  [WARNING] SESSION_SECRET is using the default insecure value in production! Configure it in your environment.');
+      }
+      if (config.tokenEncKey === 'insecure-dev-enc-key-change-me-please-32b') {
+        console.warn('  ⚠️  [WARNING] TOKEN_ENC_KEY is using the default insecure value in production! Configure it in your environment.');
+      }
+    }
+  });
+}
+
+if (require.main === module) {
+  start();
+}
 
 module.exports = app;
+module.exports.start = start;
