@@ -144,8 +144,8 @@
     if (e.target.closest('#backBtn')) { load(activeCat); return; }
     const thumb = e.target.closest('button[data-img]');
     if (thumb) {
-      const m = document.getElementById('detailMain'); if (m) m.src = thumb.dataset.img;
-      const bg = document.getElementById('detailBg'); if (bg) bg.src = thumb.dataset.img;
+      const m = document.getElementById('detailMain'); if (m) m.src = thumb.dataset.img + '?thumb=800';
+      const bg = document.getElementById('detailBg'); if (bg) bg.src = thumb.dataset.img + '?thumb=160';
     }
   });
 
@@ -214,8 +214,8 @@
     // Blurred copy of the same image fills the letterbox so every cover —
     // square, portrait, landscape — looks intentional with no empty frame.
     const gallery = mainSrc
-      ? `<img id="detailBg" src="${mainSrc}" alt="" aria-hidden="true" class="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40"/>
-         <img id="detailMain" src="${mainSrc}" alt="${SN.escape(p.title)}" class="relative w-full h-full object-contain"/>`
+      ? `<img id="detailBg" src="${mainSrc}?thumb=160" alt="" aria-hidden="true" class="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40"/>
+         <img id="detailMain" src="${mainSrc}?thumb=800" alt="${SN.escape(p.title)}" decoding="async" class="relative w-full h-full object-contain"/>`
       : `<span class="material-symbols-outlined text-5xl text-outline">graphic_eq</span>`;
     const thumbs = images.length > 1
       ? `<div class="grid grid-cols-5 gap-2">${images.map(a => `

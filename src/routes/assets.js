@@ -25,7 +25,7 @@ router.get('/:id/raw', async (req, res) => {
   // Drive thumbnail once and store it. Per-asset thumbnails never change, so
   // they can be cached aggressively. Falls back to the full image on failure.
   const thumb = parseInt(req.query.thumb, 10);
-  if (thumb && asset.kind === 'image' && [120, 160, 200, 320, 400].includes(thumb)) {
+  if (thumb && asset.kind === 'image' && [120, 160, 200, 320, 400, 640, 800].includes(thumb)) {
     const cached = cache.getThumb(asset.id, thumb);
     if (cached) {
       res.setHeader('Content-Type', 'image/jpeg');
