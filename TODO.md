@@ -4,7 +4,17 @@
 > "TODO.md 보고 이어서 하자" 또는 "1순위(썸네일 캐시)부터 하자"라고 하면 됩니다.
 > 진행 이력은 `git log --oneline`으로 확인.
 
-마지막 작업일: 2026-06-18 · 프로덕션: <https://vozong-portfolio.onrender.com> (Render, autoDeploy 정상 — `git push`만 하면 ~1분 내 배포) · 운영 프로젝트 ~436개
+마지막 작업일: 2026-06-20 · 프로덕션: <https://vozong-portfolio.onrender.com> (Render, autoDeploy 정상 — `git push`만 하면 ~1분 내 배포) · 운영 프로젝트 ~436개
+
+---
+
+## ✅ 2026-06-20 — Codex 인수인계 + 메인터넌스 패스
+- `MAINTENANCE.md` 추가: 앞으로 유지보수할 때 볼 운영 기준, 검증 루틴, 보안 규칙, 파일별 책임 정리.
+- **관리자 판정 통일**: `isAdminUser()`를 추가해 `role: admin`만으로는 관리자 취급하지 않고 `ADMIN_EMAIL` 일치까지 확인. 초안 프로젝트, 비공개 asset, YouTube admin lookup 모두 같은 기준 사용.
+- **입력 검증 강화**: 프로젝트 날짜는 실제 존재하는 `YYYY-MM-DD`만 허용, YouTube URL은 영상 ID가 있는 watch/embed/shorts/live/youtu.be 형태만 허용.
+- **서버 import 안전화**: `server.js`를 `start()`로 분리해 테스트/스모크 체크에서 `require('./server')`가 포트를 열지 않게 변경. 직접 실행/Render start 동작은 유지.
+- **내비게이션 정리**: 공개 사이드바의 `Contact`를 카테고리 근처로 이동, `Admin`은 하단 admin-only 영역에 분리.
+- 검증: `node --check`, `npm run build:css`, `git diff --check`, GitHub push, Render 배포 HTML 반영 확인.
 
 ---
 
@@ -67,7 +77,7 @@
 ---
 
 ## 🟢 낮음 / 보류
-- `src/db.js` projects category CHECK에 `'master'` 잔존(무해, 생성은 차단됨) — 정리 시 테이블 재생성 마이그레이션 필요(리스크>가치).
+- README 일부 오래된 설명(`timeline`, 과거 카테고리/디자인 문구 등) 정리. 유지보수 판단은 `CLAUDE.md`, 이 TODO, `MAINTENANCE.md`를 우선.
 - 오디오 업로드 UI — 저작권상 YouTube 링크 위주라 보류. 활성화하려면 Render env `DRIVE_AUDIO_FOLDER=portfolio_audio` + 폼 음원 미리듣기.
 - 모니터링/로깅(에러 추적), 이미지 EXIF 회전 등.
 
