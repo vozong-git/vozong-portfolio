@@ -93,10 +93,33 @@ const SN = {
     overlay.addEventListener('click', close);
     nav.addEventListener('click', (e) => { if (e.target.closest('a, button')) close(); });
   },
+
+  /* floating "scroll to top" button — appears after scrolling, for browsers
+     without iOS's tap-status-bar-to-top (e.g. Android) */
+  initScrollTop() {
+    if (document.getElementById('scrollTopBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'scrollTopBtn';
+    btn.setAttribute('aria-label', '맨 위로');
+    btn.className = 'fixed right-5 z-30 w-12 h-12 flex items-center justify-center bg-surface-container border border-outline-variant text-primary-fixed-dim rounded-[999px] shadow-lg opacity-0 translate-y-2 pointer-events-none transition-all duration-200';
+    btn.style.bottom = 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)';
+    btn.innerHTML = '<span class="material-symbols-outlined">arrow_upward</span>';
+    document.body.appendChild(btn);
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    const sync = () => {
+      const show = (window.scrollY || document.documentElement.scrollTop || 0) > 500;
+      btn.classList.toggle('opacity-0', !show);
+      btn.classList.toggle('translate-y-2', !show);
+      btn.classList.toggle('pointer-events-none', !show);
+    };
+    window.addEventListener('scroll', sync, { passive: true });
+    sync();
+  },
 };
 
-// auto-init the mobile sidebar wherever a #sideNav exists (no-op elsewhere)
+// auto-init the mobile sidebar + scroll-to-top button (no-ops where unused)
 if (typeof document !== 'undefined') {
-  if (document.readyState !== 'loading') SN.initSidebar();
-  else document.addEventListener('DOMContentLoaded', () => SN.initSidebar());
+  const boot = () => { SN.initSidebar(); SN.initScrollTop(); };
+  if (document.readyState !== 'loading') boot();
+  else document.addEventListener('DOMContentLoaded', boot);
 }
