@@ -97,28 +97,10 @@
     });
   }
 
-  // "2026-04-25" -> "2026.04"
-  function ym(d) { return (d && d.length >= 7) ? `${d.slice(0, 4)}.${d.slice(5, 7)}` : ''; }
-
   function section(label, projects) {
-    let body;
-    if (!projects.length) {
-      body = `<p class="font-metadata-sm text-metadata-sm text-outline pl-1">No projects yet.</p>`;
-    } else {
-      // projects arrive newest-first; group consecutive ones by year-month
-      const groups = [];
-      for (const p of projects) {
-        const key = ym(p.completion_date);
-        const last = groups[groups.length - 1];
-        if (last && last.key === key) last.items.push(p);
-        else groups.push({ key, items: [p] });
-      }
-      body = groups.map(g => `
-        <div class="flex flex-col gap-3">
-          ${g.key ? `<div style="transform:translateZ(0)" class="sticky top-[113px] md:top-[57px] z-10 bg-background py-3 font-metadata-sm text-sm text-on-surface-variant tracking-widest pl-1">${g.key}</div>` : ''}
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${g.items.map(SN.projectCard).join('')}</div>
-        </div>`).join('');
-    }
+    const body = projects.length
+      ? `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${projects.map(SN.projectCard).join('')}</div>`
+      : `<p class="font-metadata-sm text-metadata-sm text-outline pl-1">No projects yet.</p>`;
     return `
       <section class="flex flex-col gap-4">
         <h3 style="transform:translateZ(0)" class="sticky top-14 md:top-0 z-20 bg-background py-4 font-label-caps text-base font-bold text-on-surface-variant tracking-widest border-b border-outline-variant">${SN.escape(label).toUpperCase()}</h3>
