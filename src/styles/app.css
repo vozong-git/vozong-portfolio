@@ -10,15 +10,15 @@
   white-space: nowrap; word-wrap: normal; direction: ltr;
   -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased;
 }
-/* recessed hardware display */
-.inner-glow { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
-/* active item bloom */
-.glow-bloom { box-shadow: 0 0 12px rgba(0, 218, 243, 0.3); }
-/* faint console grid backdrop for auth screen */
+/* soft card elevation (light theme) */
+.inner-glow { box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.05); }
+/* active CTA — gentle accent-tinted shadow (no neon bloom) */
+.glow-bloom { box-shadow: 0 2px 8px rgba(14,116,144,0.20); }
+/* very faint console grid backdrop for auth screen */
 .console-grid {
   background-image:
-    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+    linear-gradient(rgba(0,0,0,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,.025) 1px, transparent 1px);
   background-size: 56px 56px;
 }
 input, textarea, select { font-family: 'JetBrains Mono', monospace; }
@@ -26,9 +26,10 @@ input, textarea, select { font-family: 'JetBrains Mono', monospace; }
   position: fixed; right: 24px; bottom: 24px; z-index: 100;
   padding: 12px 18px; border-radius: .25rem; font: 500 13px 'JetBrains Mono', monospace;
   letter-spacing: .03em; border-left: 2px solid; opacity: 0; transform: translateY(8px);
+  box-shadow: 0 4px 14px rgba(16,24,40,0.10); background: #ffffff;
   transition: opacity .2s, transform .2s;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
-.toast.ok  { background: rgba(0,218,243,.1); color: #00daf3; border-color: #00daf3; }
-.toast.err { background: rgba(255,180,171,.1); color: #ffb4ab; border-color: #ffb4ab; }
+.toast.ok  { color: #0b5566; border-color: #0e7490; }
+.toast.err { color: #b3261e; border-color: #b3261e; }
 [hidden] { display: none !important; }

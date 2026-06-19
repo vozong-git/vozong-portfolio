@@ -9,24 +9,36 @@ module.exports = {
   content: ['./public/**/*.html', './public/assets/*.js'],
   theme: {
     extend: {
+      // ── Light theme (clean white / black / gray, tamed cyan accent) ──
       colors: {
-        'on-primary-fixed': '#001f24', 'primary-container': '#00e5ff', 'error': '#ffb4ab',
-        'on-surface': '#e5e2e1', 'on-tertiary-fixed': '#251a00', 'surface-container-highest': '#353534',
-        'outline-variant': '#3b494c', 'outline': '#849396', 'surface': '#131313',
-        'tertiary-fixed': '#ffdf96', 'surface-tint': '#00daf3', 'secondary-container': '#feb300',
-        'on-primary-fixed-variant': '#004f58', 'on-primary': '#00363d', 'surface-container-low': '#1c1b1b',
-        'on-primary-container': '#00626e', 'primary-fixed-dim': '#00daf3', 'inverse-primary': '#006875',
-        'tertiary-container': '#fec931', 'surface-container-high': '#2a2a2a', 'on-background': '#e5e2e1',
-        'tertiary': '#ffeac0', 'on-secondary': '#432c00', 'primary': '#c3f5ff', 'surface-container': '#201f1f',
-        'on-error': '#690005', 'on-error-container': '#ffdad6', 'surface-variant': '#353534',
-        'surface-bright': '#393939', 'error-container': '#93000a', 'primary-fixed': '#9cf0ff',
-        'secondary': '#ffd799', 'tertiary-fixed-dim': '#f3bf26', 'inverse-on-surface': '#313030',
-        'on-secondary-container': '#6a4800', 'on-tertiary-fixed-variant': '#594400',
-        'on-secondary-fixed-variant': '#604100', 'surface-container-lowest': '#0e0e0e',
-        'on-tertiary-container': '#6f5500', 'surface-dim': '#131313', 'on-tertiary': '#3e2e00',
-        'secondary-fixed': '#ffdeac', 'on-secondary-fixed': '#281900', 'on-surface-variant': '#bac9cc',
-        'background': '#131313', 'secondary-fixed-dim': '#ffba38', 'inverse-surface': '#e5e2e1',
-        'success': '#7ce0a0',
+        // accent
+        'primary': '#0e7490', 'primary-fixed-dim': '#0e7490', 'primary-fixed': '#0b5f76',
+        'surface-tint': '#0e7490', 'inverse-primary': '#7cd0e6',
+        'primary-container': '#cdeef6', 'on-primary': '#ffffff', 'on-primary-fixed': '#ffffff',
+        'on-primary-fixed-variant': '#0b5566', 'on-primary-container': '#0b5566',
+        // page + surfaces
+        'background': '#ffffff', 'on-background': '#1a1c1e',
+        'surface': '#ffffff', 'surface-dim': '#eef1f3', 'surface-bright': '#ffffff',
+        'surface-container-lowest': '#f8f9fa', 'surface-container-low': '#f4f6f7',
+        'surface-container': '#f4f6f7', 'surface-container-high': '#eceef0',
+        'surface-container-highest': '#e5e8ea', 'surface-variant': '#eceef0',
+        'on-surface': '#1a1c1e', 'on-surface-variant': '#5a6063',
+        'inverse-surface': '#2b2e30', 'inverse-on-surface': '#f1f3f4',
+        // outlines
+        'outline': '#8b9296', 'outline-variant': '#dfe3e6',
+        // status
+        'success': '#1a7f43', 'error': '#b3261e', 'on-error': '#ffffff',
+        'error-container': '#f9dedc', 'on-error-container': '#410e0b',
+        // category accents (legible on white)
+        'secondary': '#b5651d', 'secondary-container': '#b5651d', 'on-secondary': '#ffffff',
+        'on-secondary-container': '#4a2a0a',
+        'tertiary': '#8a6d00', 'tertiary-container': '#8a6d00', 'on-tertiary': '#ffffff',
+        'on-tertiary-container': '#3a2e00',
+        // rarely-used fixed/dim tokens
+        'secondary-fixed': '#f3e2cf', 'secondary-fixed-dim': '#e0c19a',
+        'on-secondary-fixed': '#2a1900', 'on-secondary-fixed-variant': '#604100',
+        'tertiary-fixed': '#f3e6b8', 'tertiary-fixed-dim': '#d8c06a',
+        'on-tertiary-fixed': '#3a2e00', 'on-tertiary-fixed-variant': '#594400',
       },
       borderRadius: { DEFAULT: '0.125rem', lg: '0.25rem', xl: '0.5rem', full: '0.75rem' },
       spacing: {
