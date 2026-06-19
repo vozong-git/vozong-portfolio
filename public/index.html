@@ -101,7 +101,7 @@
       : `<p class="font-metadata-sm text-metadata-sm text-outline pl-1">No projects yet.</p>`;
     return `
       <section class="flex flex-col gap-4">
-        <h3 class="font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant pb-2">${SN.escape(label).toUpperCase()}</h3>
+        <h3 style="transform:translateZ(0)" class="sticky top-[52px] md:top-0 z-20 bg-background pt-2 pb-2 font-label-caps text-label-caps text-on-surface-variant tracking-widest border-b border-outline-variant">${SN.escape(label).toUpperCase()}</h3>
         ${body}
       </section>`;
   }
