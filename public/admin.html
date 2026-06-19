@@ -118,7 +118,7 @@
   }
 
   function row(p) {
-    const typeColor = TYPE_COLOR[p.category] || 'text-primary-fixed-dim';
+    const typeColor = TYPE_COLOR[p.category] || 'text-on-surface-variant';
     return `<tr class="border-b border-outline-variant hover:bg-surface-container-high transition-colors" data-id="${p.id}">
       <td class="p-4 text-on-surface-variant">${SN.escape(p.completion_date || p.created_at?.slice(0,10) || '')}</td>
       <td class="p-4 text-on-surface font-semibold">

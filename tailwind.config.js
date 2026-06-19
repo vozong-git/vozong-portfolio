@@ -9,36 +9,36 @@ module.exports = {
   content: ['./public/**/*.html', './public/assets/*.js'],
   theme: {
     extend: {
-      // ── Light theme (clean white / black / gray, tamed cyan accent) ──
+      // ── Warm light theme (Claude-style cream + coral accent) ──
       colors: {
-        // accent
-        'primary': '#0e7490', 'primary-fixed-dim': '#0e7490', 'primary-fixed': '#0b5f76',
-        'surface-tint': '#0e7490', 'inverse-primary': '#7cd0e6',
-        'primary-container': '#cdeef6', 'on-primary': '#ffffff', 'on-primary-fixed': '#ffffff',
-        'on-primary-fixed-variant': '#0b5566', 'on-primary-container': '#0b5566',
-        // page + surfaces
-        'background': '#ffffff', 'on-background': '#1a1c1e',
-        'surface': '#ffffff', 'surface-dim': '#eef1f3', 'surface-bright': '#ffffff',
-        'surface-container-lowest': '#f8f9fa', 'surface-container-low': '#f4f6f7',
-        'surface-container': '#f4f6f7', 'surface-container-high': '#eceef0',
-        'surface-container-highest': '#e5e8ea', 'surface-variant': '#eceef0',
-        'on-surface': '#1a1c1e', 'on-surface-variant': '#5a6063',
-        'inverse-surface': '#2b2e30', 'inverse-on-surface': '#f1f3f4',
-        // outlines
-        'outline': '#8b9296', 'outline-variant': '#dfe3e6',
+        // accent — Claude coral / terracotta
+        'primary': '#C15F3C', 'primary-fixed-dim': '#C15F3C', 'primary-fixed': '#A84E2E',
+        'surface-tint': '#C15F3C', 'inverse-primary': '#E8A88E',
+        'primary-container': '#F2E1D8', 'on-primary': '#ffffff', 'on-primary-fixed': '#ffffff',
+        'on-primary-fixed-variant': '#8A3D22', 'on-primary-container': '#8A3D22',
+        // page + warm (cream) surfaces — never pure white in large areas
+        'background': '#FAF9F5', 'on-background': '#2A2824',
+        'surface': '#ffffff', 'surface-dim': '#F0EEE8', 'surface-bright': '#ffffff',
+        'surface-container-lowest': '#F4F2EB', 'surface-container-low': '#FAF8F3',
+        'surface-container': '#FCFBF8', 'surface-container-high': '#F1EFE8',
+        'surface-container-highest': '#E9E6DD', 'surface-variant': '#EFEDE5',
+        'on-surface': '#2A2824', 'on-surface-variant': '#6B6862',
+        'inverse-surface': '#2A2824', 'inverse-on-surface': '#FAF9F5',
+        // outlines (warm)
+        'outline': '#9C988D', 'outline-variant': '#E6E2D8',
         // status
-        'success': '#1a7f43', 'error': '#b3261e', 'on-error': '#ffffff',
-        'error-container': '#f9dedc', 'on-error-container': '#410e0b',
-        // category accents (legible on white)
-        'secondary': '#b5651d', 'secondary-container': '#b5651d', 'on-secondary': '#ffffff',
-        'on-secondary-container': '#4a2a0a',
-        'tertiary': '#8a6d00', 'tertiary-container': '#8a6d00', 'on-tertiary': '#ffffff',
-        'on-tertiary-container': '#3a2e00',
-        // rarely-used fixed/dim tokens
-        'secondary-fixed': '#f3e2cf', 'secondary-fixed-dim': '#e0c19a',
-        'on-secondary-fixed': '#2a1900', 'on-secondary-fixed-variant': '#604100',
-        'tertiary-fixed': '#f3e6b8', 'tertiary-fixed-dim': '#d8c06a',
-        'on-tertiary-fixed': '#3a2e00', 'on-tertiary-fixed-variant': '#594400',
+        'success': '#2F7D4F', 'error': '#B3261E', 'on-error': '#ffffff',
+        'error-container': '#F7DEDA', 'on-error-container': '#410E0B',
+        // categories + tags → neutral warm grey, so coral stays the only accent
+        'secondary': '#6B6862', 'secondary-container': '#6B6862', 'on-secondary': '#ffffff',
+        'on-secondary-container': '#2A2824',
+        'tertiary': '#6B6862', 'tertiary-container': '#6B6862', 'on-tertiary': '#ffffff',
+        'on-tertiary-container': '#2A2824',
+        // rarely-used fixed/dim tokens → warm neutrals
+        'secondary-fixed': '#EFEAE0', 'secondary-fixed-dim': '#D9D2C4',
+        'on-secondary-fixed': '#2A2824', 'on-secondary-fixed-variant': '#5A564E',
+        'tertiary-fixed': '#EFEAE0', 'tertiary-fixed-dim': '#D9D2C4',
+        'on-tertiary-fixed': '#2A2824', 'on-tertiary-fixed-variant': '#5A564E',
       },
       borderRadius: { DEFAULT: '0.125rem', lg: '0.25rem', xl: '0.5rem', full: '0.75rem' },
       spacing: {
