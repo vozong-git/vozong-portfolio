@@ -99,13 +99,19 @@
     });
   }
 
-  function section(label, projects) {
+  function section(label, projects, collapsible = false) {
     const body = projects.length
-      ? `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${projects.map(SN.projectCard).join('')}</div>`
-      : `<p class="font-metadata-sm text-metadata-sm text-outline pl-1">No projects yet.</p>`;
+      ? `<div data-sec-body class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${projects.map(SN.projectCard).join('')}</div>`
+      : `<p data-sec-body class="font-metadata-sm text-metadata-sm text-outline pl-1">No projects yet.</p>`;
+    const base = 'sticky top-14 md:top-0 z-20 bg-background py-2.5 font-label-caps text-base font-bold text-on-surface-variant tracking-widest border-b border-outline-variant';
+    const head = collapsible
+      ? `<h3 data-sec-toggle role="button" tabindex="0" aria-expanded="true" style="transform:translateZ(0)" class="${base} flex items-center justify-between gap-2 cursor-pointer select-none hover:text-on-surface transition-colors">
+           <span>${SN.escape(label).toUpperCase()}</span>
+           <span data-sec-chevron class="material-symbols-outlined text-lg transition-transform">expand_more</span></h3>`
+      : `<h3 style="transform:translateZ(0)" class="${base}">${SN.escape(label).toUpperCase()}</h3>`;
     return `
       <section class="flex flex-col gap-4">
-        <h3 style="transform:translateZ(0)" class="sticky top-14 md:top-0 z-20 bg-background py-2.5 font-label-caps text-base font-bold text-on-surface-variant tracking-widest border-b border-outline-variant">${SN.escape(label).toUpperCase()}</h3>
+        ${head}
         ${body}
       </section>`;
   }
@@ -120,10 +126,11 @@
       if (cat) {
         area.innerHTML = section(SN.CATEGORY_LABELS[cat] || cat, projects);
       } else {
-        // Overview: one section per category, always shown, in order
-        let html = CATS.map(c => section(c.label, projects.filter(p => p.category === c.key))).join('');
+        // Overview: one section per category, always shown, in order.
+        // Headers are collapsible here (true) so each category can be folded away.
+        let html = CATS.map(c => section(c.label, projects.filter(p => p.category === c.key), true)).join('');
         const others = projects.filter(p => !CATS.some(c => c.key === p.category));
-        if (others.length) html += section('Other', others);
+        if (others.length) html += section('Other', others, true);
         area.innerHTML = html;
       }
     } catch (e) {
@@ -143,10 +150,25 @@
   // ── project detail (open on card click, return via Back) ──
   area.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
+    const secTog = e.target.closest('[data-sec-toggle]');
+    if (secTog) { e.preventDefault(); toggleSection(secTog); return; }
     const card = e.target.closest('article[data-id]');
     if (card) { e.preventDefault(); openDetail(card.dataset.id); }
   });
+  // collapse/expand an Overview category section by clicking its header
+  function toggleSection(tog) {
+    const body = tog.closest('section')?.querySelector('[data-sec-body]');
+    if (!body) return;
+    const collapse = !body.hasAttribute('hidden');
+    body.toggleAttribute('hidden', collapse);
+    tog.setAttribute('aria-expanded', String(!collapse));
+    const chev = tog.querySelector('[data-sec-chevron]');
+    if (chev) chev.style.transform = collapse ? 'rotate(-90deg)' : '';
+  }
+
   area.addEventListener('click', (e) => {
+    const secTog = e.target.closest('[data-sec-toggle]');
+    if (secTog) { toggleSection(secTog); return; }
     const card = e.target.closest('article[data-id]');
     if (card) { openDetail(card.dataset.id); return; }
     if (e.target.closest('#backBtn')) {
