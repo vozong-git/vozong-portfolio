@@ -179,6 +179,27 @@ router.get('/tags', requireAdmin, (req, res) => {
   res.json({ tags: out.slice(0, 5) });
 });
 
+// GET /api/projects/stats (admin) — dashboard counts; visitors never see these.
+// Must stay above '/:id' so the literal path isn't captured as an id.
+router.get('/stats', requireAdmin, (_req, res) => {
+  const s = db.db.prepare(`
+    SELECT
+      COUNT(*) AS total,
+      SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) AS published,
+      SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft,
+      SUM(CASE WHEN youtube_url IS NOT NULL AND youtube_url != '' THEN 1 ELSE 0 END) AS withYoutube,
+      COUNT(DISTINCT NULLIF(TRIM(client_name), '')) AS artists,
+      MIN(NULLIF(completion_date, '')) AS firstDate,
+      MAX(NULLIF(completion_date, '')) AS lastDate
+    FROM projects
+  `).get();
+  const byCategory = {};
+  for (const r of db.db.prepare('SELECT category, COUNT(*) AS n FROM projects GROUP BY category').all()) {
+    byCategory[r.category] = r.n;
+  }
+  res.json({ ...s, byCategory });
+});
+
 // GET /api/projects/:id
 router.get('/:id', (req, res) => {
   const row = db.db.prepare('SELECT * FROM projects WHERE id = ?').get(req.params.id);

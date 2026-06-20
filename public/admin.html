@@ -51,6 +51,7 @@
       <div class="flex gap-4 font-metadata-sm text-metadata-sm text-on-surface-variant">
         <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">folder_open</span> Total Projects: <span id="totalCount">—</span></span>
       </div>
+      <div id="statsStrip" class="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-metadata-sm text-[11px] text-on-surface-variant"></div>
     </div>
     <a href="/project-form.html" class="bg-primary-fixed-dim/10 text-primary-fixed-dim border border-primary-fixed-dim font-label-caps text-label-caps py-2 px-6 rounded hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all flex items-center justify-center gap-2 glow-bloom">
       <span class="material-symbols-outlined text-sm">add_circle</span> Quick Add
@@ -140,6 +141,18 @@
       try { await SN.api('PUT', '/api/theme', { theme: key }); SN.toast(`Theme: ${key}`); }
       catch (err) { document.documentElement.dataset.theme = prev; paint(prev); SN.toast(err.message || 'Theme change failed', 'err'); }
     });
+  } catch (_) {}
+
+  // admin-only stats strip (visitors never see this)
+  try {
+    const s = await SN.api('GET', '/api/projects/stats');
+    const c = s.byCategory || {};
+    const chip = (label, n) => `<span class="inline-flex items-center gap-1.5"><span class="text-outline tracking-wider">${label}</span><b class="text-on-surface font-semibold">${n ?? 0}</b></span>`;
+    document.getElementById('statsStrip').innerHTML = [
+      chip('TOTAL', s.total), chip('PUBLISHED', s.published), chip('DRAFT', s.draft),
+      chip('ARTISTS', s.artists), chip('YOUTUBE', s.withYoutube),
+      chip('STUDIO', c.studio), chip('PLAYBACK', c.playback), chip('LIVE', c.live),
+    ].join('');
   } catch (_) {}
 
   let filter = '';
