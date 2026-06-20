@@ -8,7 +8,7 @@
 npm install            # 의존성 설치
 cp .env.example .env   # 최초 1회, 이후 값 채우기 (§환경변수)
 npm run build:css      # Tailwind CSS 빌드 → public/assets/app.css (watch: npm run watch:css)
-npm start              # 서버 실행 (기본 PORT=3000, prestart가 CSS 자동 빌드)
+npm start              # 서버 실행 (기본 PORT=8080, prestart가 CSS 자동 빌드)
 node --check server.js # 문법 체크
 ```
 
@@ -22,7 +22,7 @@ node --check server.js # 문법 체크
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google Cloud OAuth 클라이언트 |
 | `SESSION_SECRET` | JWT 서명 키 (랜덤) |
 | `TOKEN_ENC_KEY` | drive refresh token AES-256-GCM 암호화 키 파생용 (랜덤) |
-| `BASE_URL` | 기본 `http://localhost:3000`. OAuth redirect 계산에 사용 |
+| `BASE_URL` | 기본 `http://localhost:8080`. OAuth redirect 계산에 사용 |
 | `DRIVE_IMAGE_FOLDER` | 기본 `portfolio_image` |
 | `DRIVE_AUDIO_FOLDER` | 기본 `portfolio_audio` |
 | `MAX_UPLOAD_MB` | 기본 100 |

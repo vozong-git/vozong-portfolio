@@ -1,6 +1,6 @@
-# Studio Noir — Sound Engineer Portfolio
+# Sound Engineer Portfolio
 
-Kim, Bojong 포트폴리오 시스템. 방문자에게는 공개 포트폴리오를, 본인에게는 Google 로그인 기반 관리자 대시보드를 제공합니다.
+Kim, Bojong 포트폴리오 시스템. 따뜻한 라이트 테마(크림 배경 + 클로드 코랄 액센트). 방문자에게는 공개 포트폴리오를, 본인에게는 Google 로그인 기반 관리자 대시보드를 제공합니다.
 
 - **인증**: Google OAuth 2.0 — `.env`에 등록한 **단일 관리자 계정만** 통과. 그 외 계정은 자동 거부.
 - **저장소**: 업로드한 앨범 커버 / 공연 포스터는 **본인 Google Drive의 `portfolio_image` 폴더**에 적재 (오디오 레퍼런스는 `portfolio_audio`).
@@ -13,12 +13,15 @@ src/
   db.js                SQLite 스키마 + 토큰 암호화(AES-256-GCM)
   auth.js              OAuth 라우트 · JWT 세션 · 관리자 가드
   drive.js             Drive 폴더 확보/업로드/스트리밍
+  cache.js             썸네일 디스크 캐시
   routes/
-    projects.js        프로젝트 CRUD
+    projects.js        프로젝트 CRUD · 슬림 리스트 직렬화 · 추천 태그
     upload.js          파일 업로드 → Drive
-    assets.js          이미지 프록시 스트리밍 · 커버 지정 · 삭제
-    timeline.js        Live Sound 타임라인 CRUD
-public/                Studio Noir 프론트엔드 (index/login/admin/project-form/contact)
+    assets.js          이미지 프록시 스트리밍(+썸네일 캐시) · 커버 지정 · 삭제
+    contact.js         공개(난독화)/관리자(평문) 연락처
+    backup.js          SQLite 백업 → Drive (admin 또는 토큰)
+    youtube.js         "아티스트 곡명" → 영상 watch 링크 해석(+영구 캐시)
+public/                프론트엔드 (index/login/admin/project-form/contact)
 ```
 
 ---
@@ -129,20 +132,24 @@ SQLite 파일 DB를 쓰므로 **영속 디스크(Persistent Disk)** 가 필요�
 | `GET /api/auth/google` | public | OAuth 시작 (Google로 리다이렉트) |
 | `GET /api/auth/google/callback` | — | OAuth 콜백 (내부) |
 | `POST /api/auth/logout` | public | 세션 종료 |
-| `GET /api/projects` | public/admin | 목록. 비관리자는 `published`만. 쿼리: `status`, `category`, `q` |
-| `GET /api/projects/:id` | public/admin | 단건 |
+| `GET /api/projects` | public/admin | 목록(슬림: 스칼라+`cover_url`). 비관리자는 `published`만. 쿼리: `status`, `category`, `q`, `youtube=with\|without`(admin) |
+| `GET /api/projects/tags` | **admin** | 최근 추천 태그(distinct) |
+| `GET /api/projects/:id` | public/admin | 단건(전체 `assets` 포함) |
 | `POST /api/projects` | **admin** | 생성 |
 | `PATCH /api/projects/:id` | **admin** | 수정(부분) |
 | `DELETE /api/projects/:id` | **admin** | 삭제(연결 Drive 파일도 정리) |
 | `POST /api/upload` | **admin** | `multipart/form-data`: `project_id`, `files[]` → Drive 적재 |
-| `GET /api/assets/:id/raw` | public | 이미지 프록시 스트리밍(공개 URL, 캐시) |
+| `GET /api/assets/:id/raw` | public | 이미지 프록시 스트리밍(`?thumb=`로 캐시 썸네일) |
 | `PATCH /api/assets/:id/cover` | **admin** | 커버 지정 |
 | `DELETE /api/assets/:id` | **admin** | 자산 삭제(Drive 포함) |
-| `GET /api/timeline` | public | Live Sound 타임라인 |
-| `POST/PATCH/DELETE /api/timeline[/:id]` | **admin** | 타임라인 관리 |
+| `GET /api/contact` | public | 연락처(이메일/전화 base64 난독화) |
+| `GET /api/contact/full` | **admin** | 연락처 평문(폼 프리필용) |
+| `PUT /api/contact` | **admin** | 연락처 수정 |
+| `GET /api/youtube/resolve` | public/admin | `?projectId=`(공개·캐시) / `?q=`(admin) → 영상 watch 링크 |
+| `POST /api/backup` | admin 또는 `X-Backup-Token` | SQLite 백업 → Drive |
 | `GET /api/health` | public | 상태 + `driveLinked` |
 
-**프로젝트 카테고리**: `studio` · `master` · `live` · `playback` · `custom`
+**프로젝트 카테고리**: `studio` · `live` · `playback` · `custom`
 **상태**: `draft` · `published`
 
 ---
@@ -151,7 +158,7 @@ SQLite 파일 DB를 쓰므로 **영속 디스크(Persistent Disk)** 가 필요�
 
 - 세션은 httpOnly·서명 JWT 쿠키. 프로덕션(`NODE_ENV=production`)에서는 `secure` 플래그가 켜지므로 **HTTPS 필수**.
 - Drive refresh token은 SQLite에 **AES-256-GCM 암호화**되어 저장됩니다 (`TOKEN_ENC_KEY`로 파생).
-- 업로드 허용 형식: 이미지(PNG/JPG/WEBP/GIF), 오디오(WAV/AIF/MP3). 그 외 거부. 용량 한도 `MAX_UPLOAD_MB`(기본 500MB).
+- 업로드 허용 형식: 이미지(PNG/JPG/WEBP/GIF), 오디오(WAV/AIFF/MP3). 그 외 거부. 용량 한도 `MAX_UPLOAD_MB`(기본 100MB).
 - Drive 파일은 공개로 만들지 않고 서버가 프록시 스트리밍하므로, 비공개 프로젝트의 자산은 비관리자에게 노출되지 않습니다.
 - 리버스 프록시(nginx 등) 뒤에 둘 경우 `app.set('trust proxy', 1)`가 이미 설정되어 있습니다.
 
@@ -162,4 +169,6 @@ SQLite 파일 DB를 쓰므로 **영속 디스크(Persistent Disk)** 가 필요�
 
 ## 6. 디자인 시스템
 
-`studio_noir/DESIGN.md`의 *Studio Noir* 토큰(Hanken Grotesk / Inter / JetBrains Mono, Electric Blue `#00daf3` 액센트, 다크 슬레이트 계층)을 `tailwind.config.js`에 반영했습니다(이전 `public/assets/theme.js`에서 이전). 모든 페이지가 동일 사이드바와 토큰을 공유합니다.
+**따뜻한 라이트 테마** — 크림 배경(`#FAF9F5`) + **클로드 코랄 `#C15F3C`** 단일 액센트. 카테고리·태그는 중성 그레이로 통일. 폰트는 Hanken Grotesk(제목) / Inter(본문) / JetBrains Mono(스펙·수치).
+
+디자인 토큰은 `tailwind.config.js`(의미론적 colors)에, 커스텀 효과(inner-glow·glow-bloom·console-grid·toast)는 `src/styles/app.css`에 정의합니다. 토큰 값만 바꾸면 전 페이지가 일괄 전환됩니다. 모든 페이지가 동일 사이드바와 토큰을 공유합니다.

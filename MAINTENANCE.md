@@ -11,8 +11,8 @@ for admin login, and Google Drive for private media storage.
 - `CLAUDE.md`: most complete architecture and operational notes.
 - `TODO.md`: current backlog and historical decisions.
 - `render.yaml`: production deployment, disk, cron backup, and env var shape.
-- `README.md`: user setup guide, but some sections have lagged behind recent
-  work; verify against `CLAUDE.md` and code before trusting old API lists.
+- `README.md`: user setup guide. Refreshed 2026-06-20 (routes, API table,
+  categories, upload limit, light theme) so it now matches the code.
 
 ## Production
 
@@ -95,11 +95,9 @@ curl -I --max-time 20 https://vozong-portfolio.onrender.com/
   checks, CSS build, import smoke checks, and targeted curl checks.
 - `npm run build:css` currently warns that Browserslist/caniuse-lite is old.
   This is not a runtime failure.
-- README has some stale historical references. Prefer `CLAUDE.md`,
-  `TODO.md`, and this file for maintenance decisions.
 - Major dependency upgrades are intentionally deferred: Express 5, Helmet 8,
   express-rate-limit 8, Tailwind 4, CSP nonce migration.
-- Optional future work: lightweight automated API smoke tests, README cleanup,
+- Optional future work: lightweight automated API smoke tests,
   admin pagination/"load more", monitoring/error reporting, optional audio UI.
 
 ## Recent Codex Takeover Notes
