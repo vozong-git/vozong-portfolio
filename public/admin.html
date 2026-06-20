@@ -80,15 +80,15 @@
     </div>
     </div>
     <div class="overflow-x-auto border border-outline-variant rounded bg-surface-container inner-glow mt-4">
-      <table class="admin-table w-full text-left border-collapse">
+      <table class="admin-table w-full md:table-fixed text-left border-collapse">
         <thead>
           <tr class="border-b border-outline-variant bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant">
-            <th class="px-3 py-3 md:p-4 font-normal">DATE</th>
+            <th class="px-3 py-3 md:p-4 font-normal md:w-[104px]">DATE</th>
             <th class="px-3 py-3 md:p-4 font-normal">PROJECT NAME</th>
-            <th class="p-4 font-normal hidden md:table-cell">ARTIST</th>
-            <th class="p-4 font-normal hidden md:table-cell">TYPE</th>
-            <th class="px-3 py-3 md:p-4 font-normal">STATUS</th>
-            <th class="px-3 py-3 md:p-4 font-normal text-right">ACTIONS</th>
+            <th class="p-4 font-normal hidden md:table-cell md:w-[128px]">ARTIST</th>
+            <th class="p-4 font-normal hidden md:table-cell md:w-[120px]">TYPE</th>
+            <th class="px-3 py-3 md:p-4 font-normal md:w-[116px]">STATUS</th>
+            <th class="px-3 py-3 md:p-4 font-normal text-right md:w-[112px]">ACTIONS</th>
           </tr>
         </thead>
         <tbody id="tableBody" class="font-metadata-sm text-metadata-sm">
@@ -157,7 +157,7 @@
     const typeColor = TYPE_COLOR[p.category] || 'text-on-surface-variant';
     return `<tr class="border-b border-outline-variant hover:bg-surface-container-high transition-colors" data-id="${p.id}">
       <td data-col="date" class="px-3 py-3 md:p-4 text-on-surface-variant whitespace-nowrap">${SN.escape(p.completion_date || p.created_at?.slice(0,10) || '')}</td>
-      <td data-col="name" class="px-3 py-3 md:p-4 text-on-surface font-semibold">
+      <td data-col="name" class="px-3 py-3 md:p-4 text-on-surface font-semibold break-words">
         <div class="flex items-center gap-2 flex-wrap">
           <a href="/?project=${p.id}" target="_blank" rel="noopener" title="상세보기 미리보기 (새 탭)" class="hover:text-primary-fixed-dim hover:underline">${SN.escape(p.title)}</a>
           ${p.youtube_url ? `<a href="${SN.escape(p.youtube_url)}" target="_blank" rel="noopener" title="YouTube 영상 열기" class="hover:opacity-80 shrink-0"><span class="material-symbols-outlined text-[18px] align-middle" style="color:#FF0000">smart_display</span></a>` : ''}
