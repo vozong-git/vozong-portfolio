@@ -241,7 +241,7 @@
     const btn = e.target.closest('button[data-act]'); if (!btn) return;
     const tr = btn.closest('tr'); const id = tr.dataset.id; const act = btn.dataset.act;
     try {
-      if (act === 'edit') { location.href = `/project-form.html?id=${id}`; return; }
+      if (act === 'edit') { sessionStorage.setItem('admin_scroll', String(window.scrollY)); location.href = `/project-form.html?id=${id}`; return; }
       if (act === 'toggle') {
         const isPub = tr.querySelector('[data-act="toggle"] .material-symbols-outlined').textContent === 'toggle_on';
         await SN.api('PATCH', `/api/projects/${id}`, { status: isPub ? 'draft' : 'published' });
@@ -269,7 +269,15 @@
     await SN.api('POST', '/api/auth/logout'); location.href = '/login.html';
   });
 
-  load();
+  // preserve list scroll across an editor round-trip: save it when leaving for
+  // the form (Quick Add / New Project links + the edit button above), and
+  // restore it once after coming back (Discard / Save / Save & Next).
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a[href^="/project-form.html"]')) sessionStorage.setItem('admin_scroll', String(window.scrollY));
+  });
+  const pendingScroll = sessionStorage.getItem('admin_scroll');
+  sessionStorage.removeItem('admin_scroll');
+  load().then(() => { if (pendingScroll != null) window.scrollTo(0, parseInt(pendingScroll, 10) || 0); });
 })();
 </script>
 </body>
