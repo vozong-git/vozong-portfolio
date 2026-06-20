@@ -12,7 +12,8 @@
 - **증상**: 영상 업데이트를 많이 한 뒤 어느 시점부터 자동 검색이 안 됨. **원인**: `search.list`=100 units/호출, YouTube Data API 일 10k 한도 → 하루 ~100건 초과 시 당일 전부 실패. 공개 상세페이지가 미저장 프로젝트마다 방문 시 검색을 시도해 할당량을 빠르게 소진(436개×100=43.6k).
 - **Fix 1 (음수 캐시 TTL)**: `db.getYtCache`가 빈 결과(매칭 실패)를 7일 후 만료 처리 → 나중에 올린/이름 바꾼 영상이 재해석됨. 양수 매칭은 여전히 영구 캐시. (`src/db.js` `YT_NEG_TTL_DAYS`)
 - **Fix 2 (공개 경로 할당량 미소비)**: `?projectId=`(공개/상세) 경로는 **캐시 온리**(`lookup(q,{allowApi:false})`)로 전환 — 캐시 적중만 직링크 업그레이드, 미적중은 프런트의 "YouTube에서 검색" 링크 폴백 유지. 실제 API 검색은 관리자 "영상 자동 찾기"(`?q=`)에서만 발생. (`src/routes/youtube.js`)
-- 검증: `node --check`, in-memory TTL 스모크(fresh-neg 유지·old-neg(10d) 만료·old-pos(100d) 유지). ⏳ 운영 확인 권장: Render 로그 `[youtube resolve] 403 quotaExceeded` 여부 / Google Cloud 할당량 대시보드.
+- 검증: `node --check`, in-memory TTL 스모크(fresh-neg 유지·old-neg(10d) 만료·old-pos(100d) 유지).
+- **✅ 원인 확정(2026-06-20, Render 로그)**: `[youtube resolve] 429 Quota exceeded ... 'Search Queries per day' ... youtube.googleapis.com/search_list`. (403이 아니라 **429**로 반환 — `!r.ok`로 동일 처리됨). 06-19 16:20~17:52·06-20 01:18~02:21 UTC에 다발. 수정 `e3dc2ec`(03:19 UTC live) 이후 resolve API 호출 0건. ⚠️ 일일 할당량은 PT 자정(=07:00 UTC=16:00 KST) 리셋이라, 당일 소진분은 리셋 전까지 관리자 자동찾기도 실패할 수 있음.
 - **상세 "영상이 안 보이면 YouTube에서 보기" 링크 → 조건부 노출**: 임베드 정상 영상에선 숨기고, IFrame Player API `onError`(101/150 임베드 비허용·100 삭제/비공개)일 때만 노출. iframe `enablejsapi=1`, watch 링크 `hidden` 기본값. CSP `script-src`에 `https://www.youtube.com` 추가(IFrame API 로드용, 이미 frame-src 허용 도메인). (`public/index.html` `watchEmbed`/`loadYouTubeApi`, `server.js`)
 
 ---
