@@ -121,6 +121,10 @@
             <option value="published" selected>PUBLISHED</option>
           </select>
         </div>
+        <div class="mb-4 pb-4 border-b border-outline-variant">
+          <p id="ss_title" class="font-body-md text-body-md font-semibold text-on-surface break-words leading-snug">—</p>
+          <p id="ss_client" class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-0.5 break-words"></p>
+        </div>
         <button id="submitBtn" class="w-full bg-primary-fixed-dim text-on-primary-fixed font-label-caps text-label-caps py-3 rounded flex items-center justify-center gap-2 hover:opacity-90 transition-opacity glow-bloom">
           <span class="material-symbols-outlined text-sm">power_settings_new</span> <span id="submitLabel">INITIALIZE UPLOAD</span>
         </button>
@@ -246,7 +250,7 @@
     if (!$('f_title').value.trim())  { $('f_title').value  = meta.title;  filled.push('Title'); }
     if (!$('f_client').value.trim()) { $('f_client').value = meta.artist; filled.push('Artist'); }
     if (!$('f_date').value)          { $('f_date').value   = meta.date;   filled.push('Date'); }
-    if (filled.length) SN.toast(`자동 입력: ${filled.join(', ')}`);
+    if (filled.length) { SN.toast(`자동 입력: ${filled.join(', ')}`); syncStatusInfo(); }
   }
   function renderFileList() {
     list.innerHTML = pendingFiles.map((f, i) => `
@@ -283,6 +287,15 @@
       renderYtPreview();
     } catch (e) { SN.toast(e.message, 'err'); }
   }
+
+  // mirror the current title/artist into the System Status panel (live)
+  function syncStatusInfo() {
+    $('ss_title').textContent = $('f_title').value.trim() || '—';
+    $('ss_client').textContent = $('f_client').value.trim();
+  }
+  $('f_title').addEventListener('input', syncStatusInfo);
+  $('f_client').addEventListener('input', syncStatusInfo);
+  syncStatusInfo();
 
   function renderExisting(assets) {
     const wrap = $('existingAssets');
