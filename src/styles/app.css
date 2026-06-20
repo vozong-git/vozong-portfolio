@@ -173,3 +173,20 @@ input, textarea, select { font-family: 'JetBrains Mono', monospace; }
 .toast.ok  { border-color: rgb(var(--color-primary)); }
 .toast.err { color: rgb(var(--color-error)); border-color: rgb(var(--color-error)); }
 [hidden] { display: none !important; }
+
+/* Admin list: on phones the 6-column table would overflow, so each row becomes
+   a full-width card — name on its own line, then date / status / actions wrap
+   below. (Artist + type are hidden cells here; they show in the name subline.)
+   Desktop (md+) keeps the real table. */
+@media (max-width: 767px) {
+  .admin-table thead { display: none; }
+  .admin-table, .admin-table tbody { display: block; }
+  .admin-table tr {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 12px 14px;
+  }
+  .admin-table td[data-col] { display: block; padding: 0; }
+  .admin-table td[data-col="name"]    { flex: 1 1 100%; order: 1; }
+  .admin-table td[data-col="date"]    { order: 2; }
+  .admin-table td[data-col="status"]  { order: 3; }
+  .admin-table td[data-col="actions"] { order: 4; margin-left: auto; }
+}
