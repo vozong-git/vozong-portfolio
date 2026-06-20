@@ -80,15 +80,15 @@
     </div>
     </div>
     <div class="overflow-x-auto border border-outline-variant rounded bg-surface-container inner-glow mt-4">
-      <table class="admin-table w-full md:table-fixed text-left border-collapse">
+      <table class="admin-table w-full text-left border-collapse">
         <thead>
           <tr class="border-b border-outline-variant bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant">
-            <th class="px-3 py-3 md:p-4 font-normal md:w-[104px]">DATE</th>
+            <th class="px-3 py-3 md:p-4 font-normal whitespace-nowrap">DATE</th>
             <th class="px-3 py-3 md:p-4 font-normal">PROJECT NAME</th>
-            <th class="p-4 font-normal hidden md:table-cell md:w-[128px]">ARTIST</th>
-            <th class="p-4 font-normal hidden md:table-cell md:w-[120px]">TYPE</th>
-            <th class="px-3 py-3 md:p-4 font-normal md:w-[116px]">STATUS</th>
-            <th class="px-3 py-3 md:p-4 font-normal text-right md:w-[112px]">ACTIONS</th>
+            <th class="p-4 font-normal hidden lg:table-cell">ARTIST</th>
+            <th class="p-4 font-normal hidden lg:table-cell">TYPE</th>
+            <th class="px-3 py-3 md:p-4 font-normal">STATUS</th>
+            <th class="px-3 py-3 md:p-4 font-normal text-right">ACTIONS</th>
           </tr>
         </thead>
         <tbody id="tableBody" class="font-metadata-sm text-metadata-sm">
@@ -163,10 +163,10 @@
           ${p.youtube_url ? `<a href="${SN.escape(p.youtube_url)}" target="_blank" rel="noopener" title="YouTube 영상 열기" class="hover:opacity-80 shrink-0"><span class="material-symbols-outlined text-[18px] align-middle" style="color:#FF0000">smart_display</span></a>` : ''}
           ${(p.tags || []).map(SN.tagChip).join('')}
         </div>
-        <div class="md:hidden mt-1 font-metadata-sm text-[11px] text-on-surface-variant">${SN.escape(p.client_name || '—')} · ${SN.escape(SN.catLabel(p))}</div>
+        <div class="lg:hidden mt-1 font-metadata-sm text-[11px] text-on-surface-variant">${SN.escape(p.client_name || '—')} · ${SN.escape(SN.catLabel(p))}</div>
       </td>
-      <td class="p-4 text-on-surface-variant hidden md:table-cell">${SN.escape(p.client_name || '—')}</td>
-      <td class="p-4 ${typeColor} hidden md:table-cell">${SN.escape(SN.catLabel(p))}</td>
+      <td class="p-4 text-on-surface-variant hidden lg:table-cell">${SN.escape(p.client_name || '—')}</td>
+      <td class="p-4 ${typeColor} hidden lg:table-cell">${SN.escape(SN.catLabel(p))}</td>
       <td data-col="status" class="px-3 py-3 md:p-4">${statusChip(p.status)}</td>
       <td data-col="actions" class="px-3 py-3 md:p-4 text-right whitespace-nowrap">
         <button data-act="toggle" title="Toggle publish" class="text-outline hover:text-success transition-colors"><span class="material-symbols-outlined text-[18px]">${p.status === 'published' ? 'toggle_on' : 'toggle_off'}</span></button>
