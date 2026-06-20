@@ -113,6 +113,25 @@
   const detailModalBody = document.getElementById('detailModalBody');
   const mqDesktop = window.matchMedia('(min-width: 768px)');
   const isDesktop = () => mqDesktop.matches;
+
+  // Lock background scroll while any modal is open, padding for the scrollbar
+  // width so the page doesn't shift. Reads the modals' is-open class directly so
+  // it's correct regardless of call order.
+  let scrollLocked = false;
+  function syncScrollLock() {
+    const want = contactModal.classList.contains('is-open') || detailModal.classList.contains('is-open');
+    if (want === scrollLocked) return;
+    scrollLocked = want;
+    const el = document.documentElement;
+    if (want) {
+      const sw = window.innerWidth - el.clientWidth;
+      el.style.overflow = 'hidden';
+      if (sw > 0) el.style.paddingRight = sw + 'px';
+    } else {
+      el.style.overflow = '';
+      el.style.paddingRight = '';
+    }
+  }
   const CATS = [
     { key: 'studio', label: 'Studio Work' },
     { key: 'playback', label: 'Playback & Live Tune' },
@@ -241,11 +260,13 @@
     detailModal.setAttribute('aria-hidden', 'false');
     void detailModal.offsetWidth; // commit the closed (blur 0) baseline so the open transition ramps
     detailModal.classList.add('is-open');
+    syncScrollLock();
   }
   function closeDetailModal() {
     detailModal.classList.remove('is-open');
     detailModal.setAttribute('aria-hidden', 'true');
     detailModalBody.innerHTML = '';
+    syncScrollLock();
   }
 
   // Open a project detail. Desktop floats it in a modal over the list; mobile
@@ -468,10 +489,11 @@
     contactModal.setAttribute('aria-hidden', 'false');
     void contactModal.offsetWidth; // commit the closed (blur 0) baseline so the open transition ramps from it
     contactModal.classList.add('is-open');
+    syncScrollLock();
     loadContact();
     document.getElementById('contactClose').focus();
   }
-  function closeContact() { contactModal.classList.remove('is-open'); contactModal.setAttribute('aria-hidden', 'true'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  function closeContact() { contactModal.classList.remove('is-open'); contactModal.setAttribute('aria-hidden', 'true'); syncScrollLock(); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
   document.getElementById('contactLink').addEventListener('click', (e) => { e.preventDefault(); openContact(); });
   document.getElementById('contactClose').addEventListener('click', closeContact);
   document.getElementById('contactBackdrop').addEventListener('click', closeContact);
