@@ -42,7 +42,7 @@
       <span class="material-symbols-outlined">settings_voice</span><span class="font-label-caps text-label-caps">Playback &amp; Live Tune</span></a>
     <a data-cat="live" class="nav-item text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all duration-150 inner-glow" href="#">
       <span class="material-symbols-outlined">settings_input_component</span><span class="font-label-caps text-label-caps">Live Sound</span></a>
-    <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/contact.html">
+    <a id="contactLink" class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow" href="/contact.html">
       <span class="material-symbols-outlined">mail</span><span class="font-label-caps text-label-caps">Contact</span></a>
   </div>
   <div class="mt-auto px-4 flex flex-col gap-1 pt-4 border-t border-outline-variant">
@@ -71,6 +71,21 @@
     <p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>
   </div>
 </main>
+
+<!-- Contact modal: opens over the current view instead of navigating to contact.html -->
+<div id="contactModal" hidden class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <div id="contactBackdrop" class="absolute inset-0 bg-on-surface/30 backdrop-blur-sm"></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="cmTitle" class="relative w-full max-w-md bg-surface-container border border-outline-variant rounded-xl inner-glow p-8">
+    <button id="contactClose" aria-label="닫기" class="absolute top-3 right-3 text-on-surface-variant hover:text-primary-fixed-dim p-1"><span class="material-symbols-outlined">close</span></button>
+    <h2 id="cmTitle" class="font-display-lg text-headline-lg text-primary-fixed-dim">Kim, Bojong</h2>
+    <p id="cm_headline" class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-1 mb-6">Senior Sound Engineer · Mixing / Playback / Live Sound</p>
+    <div class="flex flex-col gap-3 font-metadata-sm text-metadata-sm">
+      <a id="cm_email_row" hidden class="flex items-center gap-3 text-on-surface hover:text-primary-fixed-dim" href="#"><span class="material-symbols-outlined text-primary-fixed-dim">mail</span> <span id="cm_email"></span></a>
+      <a id="cm_phone_row" hidden class="flex items-center gap-3 text-on-surface hover:text-primary-fixed-dim" href="#"><span class="material-symbols-outlined text-primary-fixed-dim">call</span> <span id="cm_phone"></span></a>
+      <div id="cm_location_row" hidden class="flex items-center gap-3 text-on-surface-variant"><span class="material-symbols-outlined text-primary-fixed-dim">location_on</span> <span id="cm_location"></span></div>
+    </div>
+  </div>
+</div>
 
 <script src="/assets/common.js"></script>
 <script>
@@ -364,6 +379,43 @@
         </div>
       </div>`;
   }
+
+  // ── Contact modal (overlays the current view; contact.html stays as the
+  // no-JS / direct-URL fallback). Mirrors contact.html's click-to-reveal so
+  // bots never see a harvestable email/phone in the DOM or the JSON. ──
+  const contactModal = document.getElementById('contactModal');
+  let contactLoaded = false, lastFocus = null;
+  const decB64 = (b64) => { try { return decodeURIComponent(escape(atob(b64))); } catch (_) { return atob(b64); } };
+  function bindReveal(rowId, valId, b64, label, makeHref) {
+    const row = document.getElementById(rowId);
+    document.getElementById(valId).textContent = label;
+    row.hidden = false;
+    row.addEventListener('click', (e) => {
+      if (row.dataset.revealed) return;
+      e.preventDefault();
+      const v = decB64(b64);
+      document.getElementById(valId).textContent = v;
+      row.href = makeHref(v);
+      row.dataset.revealed = '1';
+    });
+  }
+  async function loadContact() {
+    if (contactLoaded) return;
+    contactLoaded = true;
+    try {
+      const { contact } = await SN.api('GET', '/api/contact');
+      if (contact.headline) document.getElementById('cm_headline').textContent = contact.headline;
+      if (contact.location) { document.getElementById('cm_location').textContent = contact.location; document.getElementById('cm_location_row').hidden = false; }
+      if (contact.email_b64) bindReveal('cm_email_row', 'cm_email', contact.email_b64, '이메일 보기', (v) => 'mailto:' + v);
+      if (contact.phone_b64) bindReveal('cm_phone_row', 'cm_phone', contact.phone_b64, '전화번호 보기', (v) => 'tel:' + v.replace(/[^+\d]/g, ''));
+    } catch (_) { contactLoaded = false; } // allow a retry on next open
+  }
+  function openContact() { lastFocus = document.activeElement; contactModal.hidden = false; loadContact(); document.getElementById('contactClose').focus(); }
+  function closeContact() { contactModal.hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  document.getElementById('contactLink').addEventListener('click', (e) => { e.preventDefault(); openContact(); });
+  document.getElementById('contactClose').addEventListener('click', closeContact);
+  document.getElementById('contactBackdrop').addEventListener('click', closeContact);
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !contactModal.hidden) closeContact(); });
 
   // deep link: /?project=<id> opens that project's detail directly (admins can
   // preview drafts this way from the dashboard; also a shareable detail link).
