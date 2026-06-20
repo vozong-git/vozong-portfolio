@@ -437,14 +437,16 @@
   // the project id that follows the current one in the admin list order
   // The admin list is ordered newest-first (date DESC), so the visually "next"
   // project (the row above) is the previous array index. Follow the same
-  // status/category filter the dashboard had, so Next stays within that view.
+  // status/category/youtube filter the dashboard had, so Next stays within that view.
   async function nextProjectId(currentId) {
     try {
       const qs = new URLSearchParams();
       const f = sessionStorage.getItem('admin_filter') || '';
       const c = sessionStorage.getItem('admin_catFilter') || '';
+      const y = sessionStorage.getItem('admin_youtubeFilter') || '';
       if (f) qs.set('status', f);
       if (c) qs.set('category', c);
+      if (y) qs.set('youtube', y);
       const { projects } = await SN.api('GET', '/api/projects' + (qs.toString() ? `?${qs}` : ''));
       const ids = projects.map(p => String(p.id));
       const i = ids.indexOf(String(currentId));

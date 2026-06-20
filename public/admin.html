@@ -67,6 +67,11 @@
         <button data-c="playback" class="ctab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">PLAYBACK &amp; LIVE TUNE</button>
         <button data-c="live" class="ctab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">LIVE SOUND</button>
       </div>
+      <div class="flex gap-2 flex-wrap" id="youtubeTabs">
+        <button data-y="" class="ytab font-label-caps text-[10px] px-3 py-1 rounded text-primary-fixed-dim bg-primary-container/10 border border-primary-fixed-dim">ALL YOUTUBE</button>
+        <button data-y="with" class="ytab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">YOUTUBE 있음</button>
+        <button data-y="without" class="ytab font-label-caps text-[10px] px-3 py-1 rounded text-on-surface-variant border border-outline-variant">YOUTUBE 없음</button>
+      </div>
     </div>
     </div>
     <div class="overflow-x-auto border border-outline-variant rounded bg-surface-container inner-glow mt-4">
@@ -110,6 +115,7 @@
 
   let filter = '';
   let catFilter = '';
+  let youtubeFilter = '';
   const TYPE_COLOR = { live: 'text-secondary-container', playback: 'text-tertiary-container' };
 
   function statusChip(s) {
@@ -147,6 +153,7 @@
     const qs = new URLSearchParams();
     if (filter) qs.set('status', filter);
     if (catFilter) qs.set('category', catFilter);
+    if (youtubeFilter) qs.set('youtube', youtubeFilter);
     const url = '/api/projects' + (qs.toString() ? `?${qs}` : '');
     const { projects } = await SN.api('GET', url);
     document.getElementById('totalCount').textContent = projects.length;
@@ -156,7 +163,7 @@
   }
 
   function styleTabs(selector, activeBtn) {
-    const base = selector === '.ftab' ? 'ftab' : 'ctab';
+    const base = selector === '.ftab' ? 'ftab' : selector === '.ctab' ? 'ctab' : 'ytab';
     document.querySelectorAll(selector).forEach(t => {
       const on = t === activeBtn;
       t.className = `${base} font-label-caps text-[10px] px-3 py-1 rounded ` +
@@ -168,6 +175,7 @@
   function persistFilters() {
     sessionStorage.setItem('admin_filter', filter);
     sessionStorage.setItem('admin_catFilter', catFilter);
+    sessionStorage.setItem('admin_youtubeFilter', youtubeFilter);
   }
 
   document.getElementById('filterTabs').addEventListener('click', (e) => {
@@ -180,14 +188,22 @@
     catFilter = b.dataset.c; styleTabs('.ctab', b); persistFilters(); load();
   });
 
+  document.getElementById('youtubeTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.ytab'); if (!b) return;
+    youtubeFilter = b.dataset.y; styleTabs('.ytab', b); persistFilters(); load();
+  });
+
   // restore previously selected filters on load (e.g. after editing a project)
   function restoreFilters() {
     filter = sessionStorage.getItem('admin_filter') || '';
     catFilter = sessionStorage.getItem('admin_catFilter') || '';
+    youtubeFilter = sessionStorage.getItem('admin_youtubeFilter') || '';
     const fb = document.querySelector(`.ftab[data-f="${filter}"]`);
     const cb = document.querySelector(`.ctab[data-c="${catFilter}"]`);
+    const yb = document.querySelector(`.ytab[data-y="${youtubeFilter}"]`);
     if (fb) styleTabs('.ftab', fb); else filter = '';
     if (cb) styleTabs('.ctab', cb); else catFilter = '';
+    if (yb) styleTabs('.ytab', yb); else youtubeFilter = '';
   }
   restoreFilters();
 

@@ -125,7 +125,7 @@ function validate(body, { partial = false } = {}) {
   return { errors, value: out };
 }
 
-// GET /api/projects?status=&category=&q=
+// GET /api/projects?status=&category=&youtube=&q=
 // Visitors only ever receive published projects; admins can request all.
 router.get('/', (req, res) => {
   const isAdmin = isAdminUser(req.user);
@@ -139,6 +139,11 @@ router.get('/', (req, res) => {
   }
   if (req.query.category && CATEGORIES.includes(req.query.category)) {
     where.push('category = ?'); params.push(req.query.category);
+  }
+  if (isAdmin && req.query.youtube === 'with') {
+    where.push("youtube_url IS NOT NULL AND TRIM(youtube_url) != ''");
+  } else if (isAdmin && req.query.youtube === 'without') {
+    where.push("(youtube_url IS NULL OR TRIM(youtube_url) = '')");
   }
   if (req.query.q) {
     where.push('(title LIKE ? OR client_name LIKE ? OR description LIKE ?)');
