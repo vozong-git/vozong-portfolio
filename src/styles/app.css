@@ -190,7 +190,7 @@ input, textarea, select { font-family: 'JetBrains Mono', monospace; }
 }
 .contact-modal.is-open .cm-backdrop {
   background-color: rgb(var(--color-on-surface) / .3);
-  backdrop-filter: blur(1px); -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(0.5px); -webkit-backdrop-filter: blur(0.5px);
 }
 .contact-modal .cm-panel {
   opacity: 0; transform: translateY(8px) scale(.98);
