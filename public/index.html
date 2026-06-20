@@ -75,7 +75,7 @@
 </main>
 
 <!-- Contact modal: opens over the current view instead of navigating to contact.html -->
-<div id="contactModal" class="contact-modal fixed inset-0 z-[60] flex items-center justify-center p-4">
+<div id="contactModal" aria-hidden="true" class="contact-modal fixed inset-0 z-[60] flex items-center justify-center p-4">
   <div id="contactBackdrop" class="cm-backdrop absolute inset-0"></div>
   <div role="dialog" aria-modal="true" aria-labelledby="cmTitle" class="cm-panel relative w-full max-w-md bg-surface-container border border-outline-variant rounded-xl inner-glow p-8">
     <button id="contactClose" aria-label="닫기" class="absolute top-3 right-3 text-on-surface-variant hover:text-primary-fixed-dim p-1"><span class="material-symbols-outlined">close</span></button>
@@ -412,8 +412,15 @@
       if (contact.phone_b64) bindReveal('cm_phone_row', 'cm_phone', contact.phone_b64, '전화번호 보기', (v) => 'tel:' + v.replace(/[^+\d]/g, ''));
     } catch (_) { contactLoaded = false; } // allow a retry on next open
   }
-  function openContact() { lastFocus = document.activeElement; contactModal.classList.add('is-open'); loadContact(); document.getElementById('contactClose').focus(); }
-  function closeContact() { contactModal.classList.remove('is-open'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  function openContact() {
+    lastFocus = document.activeElement;
+    contactModal.setAttribute('aria-hidden', 'false');
+    void contactModal.offsetWidth; // commit the closed (blur 0) baseline so the open transition ramps from it
+    contactModal.classList.add('is-open');
+    loadContact();
+    document.getElementById('contactClose').focus();
+  }
+  function closeContact() { contactModal.classList.remove('is-open'); contactModal.setAttribute('aria-hidden', 'true'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
   document.getElementById('contactLink').addEventListener('click', (e) => { e.preventDefault(); openContact(); });
   document.getElementById('contactClose').addEventListener('click', closeContact);
   document.getElementById('contactBackdrop').addEventListener('click', closeContact);

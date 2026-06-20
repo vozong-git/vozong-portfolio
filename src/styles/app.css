@@ -178,13 +178,10 @@ input, textarea, select { font-family: 'JetBrains Mono', monospace; }
    hard cut. Kept in the DOM (no display toggle) so the transition can run;
    visibility + pointer-events make it inert while closed. */
 .contact-modal {
-  opacity: 0; visibility: hidden; pointer-events: none;
-  transition: opacity .25s ease, visibility 0s linear .25s;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
 }
-.contact-modal.is-open {
-  opacity: 1; visibility: visible; pointer-events: auto;
-  transition: opacity .25s ease, visibility 0s;
-}
+.contact-modal.is-open { opacity: 1; pointer-events: auto; }
 .contact-modal .cm-backdrop {
   background-color: rgb(var(--color-on-surface) / 0);
   backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0);
