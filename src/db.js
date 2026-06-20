@@ -229,9 +229,20 @@ function saveContact({ email, phone, location, headline }) {
 }
 
 /* ── YouTube resolve cache ── */
+// Positive matches are cached forever. Negative results (video_id = '' "no
+// match") expire after this many days so a video uploaded/renamed later can be
+// re-resolved instead of being stuck as "not found".
+const YT_NEG_TTL_DAYS = 7;
+
 function getYtCache(query) {
   open();
-  return db.prepare('SELECT video_id, resolved_at FROM yt_cache WHERE query = ?').get(query) || null;
+  const row = db.prepare(
+    `SELECT video_id, resolved_at, (julianday('now') - julianday(resolved_at)) AS age_days
+       FROM yt_cache WHERE query = ?`
+  ).get(query);
+  if (!row) return null;
+  if (!row.video_id && row.age_days > YT_NEG_TTL_DAYS) return null; // stale negative → re-resolve
+  return row;
 }
 
 function putYtCache(query, videoId) {

@@ -7,11 +7,15 @@ const router = express.Router();
 
 const SEARCH_API = 'https://www.googleapis.com/youtube/v3/search';
 
-// Resolve a query to the top YouTube video id, using a permanent cache so the
-// Data API is called at most once per distinct query. Returns { videoId, ... }.
-async function lookup(q) {
+// Resolve a query to the top YouTube video id, using a cache so the Data API is
+// called at most once per distinct query. `search.list` costs 100 of the 10k
+// daily quota units, so set { allowApi: false } on hot paths (e.g. public page
+// views) to serve cached hits only and skip the API. Returns { videoId, ... }.
+async function lookup(q, { allowApi = true } = {}) {
   const cached = db.getYtCache(q);
   if (cached) return { videoId: cached.video_id || null, source: 'cache' };
+
+  if (!allowApi) return { videoId: null, reason: 'cache_miss' };
 
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) return { videoId: null, reason: 'no_api_key' };
@@ -63,7 +67,10 @@ router.get('/resolve', async (req, res) => {
   const q = [p.client_name, p.title].filter(Boolean).join(' ').trim();
   if (!q) return res.json({ videoId: null, reason: 'empty_query' });
 
-  return res.json(await lookup(q));
+  // Portfolio/detail views never spend API quota: serve a cached hit if we have
+  // one, otherwise let the frontend keep its plain search-link fallback. Fresh
+  // resolution happens only via the admin "find video" button (?q=) below.
+  return res.json(await lookup(q, { allowApi: false }));
 });
 
 // Extract an 11-char video id from any common YouTube URL form.

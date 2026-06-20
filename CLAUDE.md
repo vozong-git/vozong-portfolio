@@ -48,7 +48,7 @@ src/
     assets.js      raw 스트림 프록시(+?thumb= 디스크 캐시: 120/160/200/320/400/640/800), PATCH /:id/cover, DELETE /:id
     contact.js     공개 GET(이메일/전화 base64 난독화) + 관리자 GET /full(평문) + PUT
     backup.js      POST /api/backup(admin 또는 X-Backup-Token, 상수시간 비교) → SQLite .backup() → Drive portfolio_backup
-    youtube.js     GET /api/youtube/resolve — projectId(공개,캐시) / q=(관리자) "아티스트 곡명"→영상 id. yt_cache 영구 캐시
+    youtube.js     GET /api/youtube/resolve — projectId(공개=캐시 온리, API 호출 안 함) / q=(관리자=API 검색). "아티스트 곡명"→영상 id. yt_cache: 양수 영구 캐시, 빈 결과(매칭 실패)는 7일 TTL 후 재해석. search.list=100 units(일 10k 한도)라 공개 경로는 할당량 미소비
 scripts/
   backup.js        cron용 standalone 백업 러너
   trigger-backup.js Render cron이 web /api/backup을 HTTP 트리거(디스크 공유 불가). 실패 시 ALERT_WEBHOOK

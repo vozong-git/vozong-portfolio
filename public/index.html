@@ -171,8 +171,10 @@
       const { project: p } = await SN.api('GET', `/api/projects/${id}`);
       area.innerHTML = detailView(p);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      // No embedded video → try to resolve the real watch link in the background
+      // No saved video → resolve a search/watch link in the background.
+      // Saved video → watch the embed and reveal the fallback only if it's blocked.
       if (!ytId(p.youtube_url)) enhanceYouTubeLink(p.id);
+      else watchEmbed();
     } catch (e) {
       area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-error">${SN.escape(e.message)}</p>`;
     }
@@ -195,6 +197,45 @@
     } catch (_) { /* keep the search fallback */ }
   }
 
+  // Load the YouTube IFrame API once. Some performance videos disable embedding;
+  // the API's onError event is the only reliable signal for that, so we use it to
+  // reveal the "watch on YouTube" fallback link only when an embed actually fails.
+  let _ytApiReady = false, _ytApiLoading = false;
+  const _ytApiQueue = [];
+  function loadYouTubeApi(cb) {
+    if (_ytApiReady) return cb();
+    _ytApiQueue.push(cb);
+    if (_ytApiLoading) return;
+    _ytApiLoading = true;
+    window.onYouTubeIframeAPIReady = () => {
+      _ytApiReady = true;
+      _ytApiQueue.splice(0).forEach(fn => fn());
+    };
+    const s = document.createElement('script');
+    s.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(s);
+  }
+
+  // Bind the API to the current embed; if it reports the video can't be embedded
+  // (101/150 = embedding disabled, 100 = removed/private), unhide the watch link.
+  let _ytPlayer = null;
+  function watchEmbed() {
+    loadYouTubeApi(() => {
+      if (!document.getElementById('ytPlayer') || typeof YT === 'undefined' || !YT.Player) return;
+      try { _ytPlayer && _ytPlayer.destroy && _ytPlayer.destroy(); } catch (_) {}
+      _ytPlayer = new YT.Player('ytPlayer', {
+        events: {
+          onError: (e) => {
+            if ([100, 101, 150].includes(e.data)) {
+              const a = document.getElementById('ytWatchFallback');
+              if (a) a.hidden = false;
+            }
+          },
+        },
+      });
+    });
+  }
+
   function detailView(p) {
     const images = (p.assets || []).filter(a => a.kind === 'image');
     const audios = (p.assets || []).filter(a => a.kind === 'audio');
@@ -202,13 +243,13 @@
     // No saved video? Offer a YouTube search for "artist title" (opens in a new
     // tab — YouTube blocks embedding its search results in an iframe).
     const searchQ = encodeURIComponent([p.client_name, p.title].filter(Boolean).join(' ').trim());
-    // Embed inline, but always offer a watch-page link below: many official
-    // performance videos disable embedding and error in the inline player —
-    // the same video plays fine on its full YouTube watch page.
+    // Embed inline. The watch-page link below stays hidden unless the IFrame API
+    // reports the video blocks embedding (onError 101/150) — those error in the
+    // inline player but play fine on the full watch page. See watchEmbed().
     const ytBlock = yt
       ? `<div class="flex flex-col gap-2">
-           <div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe src="https://www.youtube.com/embed/${yt}" class="w-full h-full" title="YouTube video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
-           <a href="https://www.youtube.com/watch?v=${yt}" target="_blank" rel="noopener"
+           <div class="aspect-video bg-black rounded overflow-hidden border border-outline-variant inner-glow"><iframe id="ytPlayer" src="https://www.youtube.com/embed/${yt}?enablejsapi=1" class="w-full h-full" title="YouTube video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+           <a id="ytWatchFallback" hidden href="https://www.youtube.com/watch?v=${yt}" target="_blank" rel="noopener"
               class="flex items-center justify-center gap-2 font-metadata-sm text-metadata-sm text-on-surface-variant hover:text-primary-fixed-dim transition-colors">
               <span class="material-symbols-outlined text-base">open_in_new</span> 영상이 안 보이면 YouTube에서 보기</a>
          </div>`
