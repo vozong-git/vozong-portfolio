@@ -177,15 +177,16 @@ input, textarea, select { font-family: 'JetBrains Mono', monospace; }
 /* Contact modal: fade in with a gentle blur ramp (blur 0 → 2px) instead of a
    hard cut. Kept in the DOM (no display toggle) so the transition can run;
    visibility + pointer-events make it inert while closed. */
-.contact-modal {
-  opacity: 0; pointer-events: none;
-  transition: opacity .25s ease;
-}
-.contact-modal.is-open { opacity: 1; pointer-events: auto; }
+/* No opacity on the wrapper itself: an opacity<1 ancestor isolates the
+   backdrop-filter so it can't blur the page until it hits 1 (the blur "jumps").
+   Instead the backdrop animates its own blur+tint, and the panel its own
+   opacity — both composite against the page throughout. */
+.contact-modal { pointer-events: none; }
+.contact-modal.is-open { pointer-events: auto; }
 .contact-modal .cm-backdrop {
   background-color: rgb(var(--color-on-surface) / 0);
   backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0);
-  transition: background-color .25s ease, backdrop-filter .25s ease, -webkit-backdrop-filter .25s ease;
+  transition: background-color .3s ease, backdrop-filter .3s ease, -webkit-backdrop-filter .3s ease;
 }
 .contact-modal.is-open .cm-backdrop {
   background-color: rgb(var(--color-on-surface) / .3);
@@ -197,7 +198,7 @@ input, textarea, select { font-family: 'JetBrains Mono', monospace; }
 }
 .contact-modal.is-open .cm-panel { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
-  .contact-modal, .contact-modal .cm-backdrop, .contact-modal .cm-panel { transition: none; }
+  .contact-modal .cm-backdrop, .contact-modal .cm-panel { transition: none; }
 }
 
 /* Admin list: on phones the 6-column table would overflow, so each row becomes
