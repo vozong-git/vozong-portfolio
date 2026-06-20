@@ -58,8 +58,17 @@ curl -I --max-time 20 https://vozong-portfolio.onrender.com/
   contact payload.
 - `src/routes/backup.js`: manual/admin backup and cron token path.
 - `src/routes/youtube.js`: YouTube Data API lookup plus permanent SQLite cache.
+- `src/routes/theme.js`: GET/PUT the site-wide accent preset (admin to set).
+  server.js also serves `/theme.js` (a head-loaded setter) from admin_state.
+- `src/routes/releases.js`: admin-only Spotify (Client Credentials) + Apple
+  (iTunes Search) link resolver for the editor's auto-find. Public pages embed
+  the saved spotify_url/apple_url only; no API calls for visitors.
+- `src/routes/projects.js` also exposes `GET /stats` (admin) for the dashboard
+  stats strip.
 - `public/*.html`: static frontends. There is no framework build step besides
-  Tailwind CSS.
+  Tailwind CSS. Theme tokens are CSS variables in `src/styles/app.css`
+  (light/dark via prefers-color-scheme + four `data-theme` accent presets);
+  rebuild `app.css` whenever Tailwind classes change.
 - `public/assets/common.js`: shared browser helpers, cards, sidebar, toast,
   scroll-to-top.
 
@@ -100,8 +109,13 @@ curl -I --max-time 20 https://vozong-portfolio.onrender.com/
   This is not a runtime failure.
 - Major dependency upgrades are intentionally deferred: Express 5, Helmet 8,
   express-rate-limit 8, Tailwind 4, CSP nonce migration.
+- Spotify release auto-find needs the app owner's Spotify account to be Premium
+  — the catalog Search API 403s otherwise ("Active premium subscription
+  required for the owner of the app"). Keys being set is not enough. Apple Music
+  auto-find (iTunes Search) is unaffected, and pasted Spotify links still embed.
 - Optional future work: lightweight automated API smoke tests,
-  admin pagination/"load more", monitoring/error reporting, optional audio UI.
+  admin pagination/"load more", monitoring/error reporting, optional audio UI,
+  featured/curated work, custom domain.
 
 ## Recent Codex Takeover Notes
 
@@ -111,3 +125,26 @@ curl -I --max-time 20 https://vozong-portfolio.onrender.com/
   deployed HTML containing Contact above the Admin-only footer.
 - Commit `51b5e95` added the admin YouTube availability filter and verified
   production health after Render deploy.
+
+## 2026-06-20 Session (UI/UX + features)
+
+Range `1e522c5..6e6b648`, all deployed and verified on Render (HTTP 200,
+admin endpoints 401 unauth, CSP, migration columns present). Highlights:
+
+- Theming: color tokens moved to CSS variables; four accent presets
+  (ember/sage/dusk/plum) switchable from the admin sidebar; dark mode follows
+  the OS via prefers-color-scheme; `/theme.js` applies the saved preset with no
+  flash.
+- Layout fixes: removed a 256px horizontal overflow when the sidebar showed;
+  admin list is wrap-to-fit cards on mobile and reveals ARTIST/TYPE only at lg+;
+  public cards softened to 8px corners.
+- Project detail: desktop modal overlay (inline on mobile) with shared history
+  back-handling and background scroll lock; contact also opens as a modal with a
+  gentle 0.4px backdrop-blur ramp.
+- Editor: System Status panel shows the current cover/title/artist; admin list
+  scroll restored after an editor round-trip; Save & Next no longer drops out
+  when a save removes the project from the active filter.
+- Release links: projects gained spotify_url/apple_url with embeds on the public
+  detail and an admin auto-find (Apple via free iTunes Search; Spotify via
+  Client Credentials — see Spotify Premium caveat in Known Gaps).
+- Admin-only stats strip via `GET /api/projects/stats`.
