@@ -121,9 +121,15 @@
             <option value="published" selected>PUBLISHED</option>
           </select>
         </div>
-        <div class="mb-4 pb-4 border-b border-outline-variant">
-          <p id="ss_title" class="font-body-md text-body-md font-semibold text-on-surface break-words leading-snug">—</p>
-          <p id="ss_client" class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-0.5 break-words"></p>
+        <div class="mb-4 pb-4 border-b border-outline-variant flex items-center gap-3">
+          <div class="w-20 h-20 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+            <img id="ss_cover" alt="" decoding="async" class="w-full h-full object-cover" hidden/>
+            <span id="ss_cover_ph" class="material-symbols-outlined text-outline">graphic_eq</span>
+          </div>
+          <div class="min-w-0">
+            <p id="ss_title" class="font-body-md text-body-md font-semibold text-on-surface break-words leading-snug">—</p>
+            <p id="ss_client" class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-0.5 break-words"></p>
+          </div>
         </div>
         <button id="submitBtn" class="w-full bg-primary-fixed-dim text-on-primary-fixed font-label-caps text-label-caps py-3 rounded flex items-center justify-center gap-2 hover:opacity-90 transition-opacity glow-bloom">
           <span class="material-symbols-outlined text-sm">power_settings_new</span> <span id="submitLabel">INITIALIZE UPLOAD</span>
@@ -283,6 +289,7 @@
       $('f_status').value = p.status || 'draft';
       $('f_custom_cat').value = p.custom_category || '';
       setCategory(p.category || 'studio');
+      setStatusCover(p.cover_url);
       renderExisting(p.assets || []);
       renderYtPreview();
     } catch (e) { SN.toast(e.message, 'err'); }
@@ -292,6 +299,12 @@
   function syncStatusInfo() {
     $('ss_title').textContent = $('f_title').value.trim() || '—';
     $('ss_client').textContent = $('f_client').value.trim();
+  }
+  // show the saved cover (public-card size) in the panel, else a placeholder
+  function setStatusCover(url) {
+    const img = $('ss_cover'), ph = $('ss_cover_ph');
+    if (url) { img.src = url + '?thumb=160'; img.hidden = false; ph.hidden = true; }
+    else { img.hidden = true; img.removeAttribute('src'); ph.hidden = false; }
   }
   $('f_title').addEventListener('input', syncStatusInfo);
   $('f_client').addEventListener('input', syncStatusInfo);
