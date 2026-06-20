@@ -33,15 +33,21 @@ async function spotifyToken() {
 }
 async function spotifySearch(q) {
   const tok = await spotifyToken();
-  if (!tok) return null;
+  if (!tok) return { url: null, error: null };
   try {
     const r = await fetch(`https://api.spotify.com/v1/search?type=track&limit=1&q=${encodeURIComponent(q)}`,
       { headers: { Authorization: 'Bearer ' + tok } });
-    if (!r.ok) { console.error('[spotify search]', r.status, await r.text().catch(() => '')); return null; }
+    if (!r.ok) {
+      const body = await r.text().catch(() => '');
+      console.error('[spotify search]', r.status, body);
+      // Spotify now blocks catalog search for apps whose owner isn't Premium
+      const error = (r.status === 403 && /premium/i.test(body)) ? 'premium_required' : 'api_error';
+      return { url: null, error };
+    }
     const d = await r.json();
     const t = d.tracks && d.tracks.items && d.tracks.items[0];
-    return (t && t.external_urls && t.external_urls.spotify) || null;
-  } catch (e) { console.error('[spotify search]', e?.message || e); return null; }
+    return { url: (t && t.external_urls && t.external_urls.spotify) || null, error: null };
+  } catch (e) { console.error('[spotify search]', e?.message || e); return { url: null, error: 'error' }; }
 }
 
 // ── Apple Music (free iTunes Search API, no key) ──
@@ -59,9 +65,10 @@ async function appleSearch(q) {
 router.get('/resolve', requireAdmin, async (req, res) => {
   const q = String(req.query.q || '').trim().slice(0, 200);
   if (!q) return res.status(400).json({ error: 'q_required' });
-  const [spotify, apple] = await Promise.all([spotifySearch(q), appleSearch(q)]);
+  const [sp, apple] = await Promise.all([spotifySearch(q), appleSearch(q)]);
   res.json({
-    spotify, apple,
+    spotify: sp.url, apple,
+    spotifyError: sp.error,
     spotifyConfigured: !!(process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET),
   });
 });
