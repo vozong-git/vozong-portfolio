@@ -42,6 +42,13 @@ services:
       # YouTube button falls back to a plain search link.
       - key: YOUTUBE_API_KEY
         sync: false
+      # Spotify Client Credentials (free developer app) for the editor's release
+      # auto-find. Optional — without it Apple Music still resolves and saved
+      # Spotify links still embed; only Spotify auto-find is disabled.
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
       - key: DRIVE_IMAGE_FOLDER
         value: portfolio_image
       - key: MAX_UPLOAD_MB

@@ -15,6 +15,7 @@ const contactRouter = require('./src/routes/contact');
 const backupRouter = require('./src/routes/backup');
 const youtubeRouter = require('./src/routes/youtube');
 const themeRouter = require('./src/routes/theme');
+const releasesRouter = require('./src/routes/releases');
 
 db.init(); // ensure schema exists
 
@@ -32,7 +33,7 @@ app.use(helmet({
       'font-src': ["'self'", 'https://fonts.gstatic.com'],
       'img-src': ["'self'", 'data:', 'blob:', 'https://i.ytimg.com', 'https://img.youtube.com'],
       'connect-src': ["'self'"],
-      'frame-src': ['https://www.youtube-nocookie.com', 'https://www.youtube.com'],
+      'frame-src': ['https://www.youtube-nocookie.com', 'https://www.youtube.com', 'https://open.spotify.com', 'https://embed.music.apple.com'],
       'frame-ancestors': ["'none'"],
     },
   },
@@ -57,6 +58,7 @@ app.use('/api/contact', apiLimiter, contactRouter);
 app.use('/api/backup', apiLimiter, backupRouter);
 app.use('/api/youtube', apiLimiter, youtubeRouter);
 app.use('/api/theme', apiLimiter, themeRouter.router);
+app.use('/api/releases', apiLimiter, releasesRouter);
 
 // Tiny script loaded synchronously in each page <head> so the saved accent
 // preset is applied before first paint (no flash). Public, always fresh.

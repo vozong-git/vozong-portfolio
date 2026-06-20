@@ -23,6 +23,8 @@ function isValidIsoDate(value) {
 function hasYoutubeVideoId(url) {
   return /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))[\w-]{11}/i.test(url);
 }
+function isSpotifyUrl(url) { return /open\.spotify\.com\/(track|album)\/[A-Za-z0-9]+/i.test(url); }
+function isAppleMusicUrl(url) { return /music\.apple\.com\//i.test(url); }
 
 function serialize(p) {
   if (!p) return null;
@@ -41,6 +43,8 @@ function serialize(p) {
     technical_specs: p.technical_specs,
     description: p.description,
     youtube_url: p.youtube_url,
+    spotify_url: p.spotify_url,
+    apple_url: p.apple_url,
     status: p.status,
     sort_order: p.sort_order,
     created_at: p.created_at,
@@ -114,6 +118,16 @@ function validate(body, { partial = false } = {}) {
       errors.push('youtube_url must be a YouTube video URL');
     }
     out.youtube_url = url || null;
+  }
+  if (has('spotify_url')) {
+    const url = (body.spotify_url ?? '').toString().trim();
+    if (url && !isSpotifyUrl(url)) errors.push('spotify_url must be an open.spotify.com track/album URL');
+    out.spotify_url = url || null;
+  }
+  if (has('apple_url')) {
+    const url = (body.apple_url ?? '').toString().trim();
+    if (url && !isAppleMusicUrl(url)) errors.push('apple_url must be a music.apple.com URL');
+    out.apple_url = url || null;
   }
   if (has('status')) {
     const s = (body.status || 'draft').toString().trim().toLowerCase();
@@ -216,9 +230,9 @@ router.post('/', requireAdmin, (req, res) => {
 
   const stmt = db.db.prepare(`
     INSERT INTO projects (title, client_name, completion_date, category, custom_category,
-                          tags, technical_specs, description, youtube_url, status, sort_order)
+                          tags, technical_specs, description, youtube_url, spotify_url, apple_url, status, sort_order)
     VALUES (@title, @client_name, @completion_date, @category, @custom_category,
-            @tags, @technical_specs, @description, @youtube_url, @status, @sort_order)
+            @tags, @technical_specs, @description, @youtube_url, @spotify_url, @apple_url, @status, @sort_order)
   `);
   const info = stmt.run({
     title: value.title,
@@ -230,6 +244,8 @@ router.post('/', requireAdmin, (req, res) => {
     technical_specs: value.technical_specs ?? null,
     description: value.description ?? null,
     youtube_url: value.youtube_url ?? null,
+    spotify_url: value.spotify_url ?? null,
+    apple_url: value.apple_url ?? null,
     status: value.status ?? 'draft',
     sort_order: value.sort_order ?? 0,
   });

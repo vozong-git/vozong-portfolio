@@ -8,6 +8,15 @@
 
 ---
 
+## ✅ 2026-06-20 — 릴리즈 링크(Spotify/Apple) + 어드민 통계
+- **릴리즈 임베드**: `projects.spotify_url`/`apple_url` 컬럼 추가(마이그레이션). 공개 상세에서 저장된 링크를 Spotify/Apple Music 임베드 플레이어로 재생(방문자가 발매 마스터 청취). 공개 경로는 API 호출 없음 — 저장된 URL만 임베드.
+- **자동 찾기(어드민 전용)**: `GET /api/releases/resolve?q=`(requireAdmin) → Spotify(client-credentials, `SPOTIFY_CLIENT_ID/SECRET` 필요) + Apple(iTunes Search, 키 불필요). 폼 "릴리즈 링크 자동 찾기" 버튼이 **빈 필드만** 채움(수동 입력 보존). 매칭 틀리면 필드 직접 수정. Spotify 키 없으면 Apple만 동작.
+- **CSP**: frame-src에 `open.spotify.com`·`embed.music.apple.com` 추가. render.yaml에 Spotify env(sync:false) 추가 — **대시보드에서 채우면 Spotify 자동찾기 활성화**.
+- **어드민 통계**: `GET /api/projects/stats`(admin) → total/published/draft·distinct artists·youtube 보유·카테고리별. 대시보드 헤더 아래 스트립(방문자 비노출).
+- 검증: node --check, build:css, 부팅 스모크(마이그레이션 컬럼 존재·resolve 401·CSP·health).
+
+---
+
 ## ✅ 2026-06-20 — 테마 프리셋 4종 + 다크모드(시스템 추종)
 - **색 토큰 → CSS 변수화**: `src/styles/app.css` `:root`에 `--color-*`(R G B 채널)로 정의, `tailwind.config.js`는 `rgb(var(--color-x) / <alpha>)`로 매핑(`/10` 등 opacity 그대로 유지). 빌드·opacity 검증 OK.
 - **다크모드**: `@media (prefers-color-scheme: dark)`로 OS 따라 자동. 서피스/텍스트는 라이트·다크 공유, accent만 프리셋별 교체. theme-color 메타도 light/dark 분기.

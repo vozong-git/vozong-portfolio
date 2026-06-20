@@ -27,6 +27,7 @@ node --check server.js # 문법 체크
 | `DRIVE_AUDIO_FOLDER` | 기본 `portfolio_audio` |
 | `MAX_UPLOAD_MB` | 기본 100 |
 | `YOUTUBE_API_KEY` | (선택) YouTube Data API v3 키. 상세페이지 "아티스트 곡명"→실제 영상 watch 링크 해석용. 없으면 검색 링크 폴백 |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | (선택) 무료 Spotify 개발자 앱. 어드민 폼 "릴리즈 링크 자동 찾기"의 Spotify 검색용. 없으면 Apple Music(iTunes Search, 키 불필요)만 동작 |
 | `BACKUP_TOKEN` / `ALERT_WEBHOOK` | cron 백업 트리거 공유 토큰 / (선택) 백업 실패 알림 Slack·Discord 웹훅 |
 | `DB_PATH` | SQLite 파일 경로 |
 
@@ -50,6 +51,7 @@ src/
     backup.js      POST /api/backup(admin 또는 X-Backup-Token, 상수시간 비교) → SQLite .backup() → Drive portfolio_backup
     youtube.js     GET /api/youtube/resolve — projectId(공개=캐시 온리, API 호출 안 함) / q=(관리자=API 검색). "아티스트 곡명"→영상 id. yt_cache: 양수 영구 캐시, 빈 결과(매칭 실패)는 7일 TTL 후 재해석. search.list=100 units(일 10k 한도)라 공개 경로는 할당량 미소비
     theme.js       GET /api/theme(공개: 현재+목록) / PUT(admin: 프리셋 변경). 별도로 server.js가 `/theme.js`(head 동기 로더)를 admin_state.theme에서 서빙
+    releases.js    GET /api/releases/resolve?q=(admin) — "아티스트 제목"→Spotify(client-credentials)+Apple(iTunes Search) 링크. 폼 자동찾기 전용. 공개 상세는 저장된 projects.spotify_url/apple_url을 임베드(API 호출 없음). CSP frame-src에 open.spotify.com·embed.music.apple.com 허용
 scripts/
   backup.js        cron용 standalone 백업 러너
   trigger-backup.js Render cron이 web /api/backup을 HTTP 트리거(디스크 공유 불가). 실패 시 ALERT_WEBHOOK

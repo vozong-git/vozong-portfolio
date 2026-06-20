@@ -152,6 +152,13 @@ function init() {
   // no rows remain.
   db.prepare("UPDATE projects SET category = 'playback' WHERE category = 'livetune'").run();
 
+  // migration: release-link columns (Spotify / Apple Music), like youtube_url.
+  // Added after the rebuild above so the final projects table always has them.
+  const pcols = db.prepare('PRAGMA table_info(projects)').all();
+  for (const col of ['spotify_url', 'apple_url']) {
+    if (!pcols.some((c) => c.name === col)) db.exec(`ALTER TABLE projects ADD COLUMN ${col} TEXT`);
+  }
+
   return db;
 }
 
