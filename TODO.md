@@ -14,6 +14,7 @@
 - **입력 검증 강화**: 프로젝트 날짜는 실제 존재하는 `YYYY-MM-DD`만 허용, YouTube URL은 영상 ID가 있는 watch/embed/shorts/live/youtu.be 형태만 허용.
 - **서버 import 안전화**: `server.js`를 `start()`로 분리해 테스트/스모크 체크에서 `require('./server')`가 포트를 열지 않게 변경. 직접 실행/Render start 동작은 유지.
 - **내비게이션 정리**: 공개 사이드바의 `Contact`를 카테고리 근처로 이동, `Admin`은 하단 admin-only 영역에 분리.
+- **관리자 YouTube 필터**: 대시보드에 `ALL YOUTUBE` / `YOUTUBE 있음` / `YOUTUBE 없음` 토글 추가. `GET /api/projects?youtube=with|without` 지원, 필터 상태는 `sessionStorage`에 유지, 수정폼 `Save & Next`도 같은 필터를 따름.
 - 검증: `node --check`, `npm run build:css`, `git diff --check`, GitHub push, Render 배포 HTML 반영 확인.
 
 ---

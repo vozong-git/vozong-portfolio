@@ -81,6 +81,10 @@ curl -I --max-time 20 https://vozong-portfolio.onrender.com/
   accent. Avoid reintroducing dark/electric-blue README-era styling.
 - Sidebar categories: Overview, Studio Work, Playback & Live Tune, Live Sound,
   Contact. Admin stays separate at the bottom and is hidden unless admin.
+- Admin dashboard filters are status, category, and YouTube availability
+  (`ALL YOUTUBE`, `YOUTUBE 있음`, `YOUTUBE 없음`). These persist in
+  `sessionStorage`, and `Save & Next` in the project form follows the same
+  filter set.
 - Current public project detail preserves list scroll when returning.
 - iOS hides the floating scroll-to-top button because iOS already has
   status-bar tap-to-top.
@@ -104,3 +108,5 @@ curl -I --max-time 20 https://vozong-portfolio.onrender.com/
   made `server.js` import-safe, and moved Contact next to category navigation.
 - Deployment for `00d9e87` was verified on Render by checking HTTP 200 and the
   deployed HTML containing Contact above the Admin-only footer.
+- Commit `51b5e95` added the admin YouTube availability filter and verified
+  production health after Render deploy.
