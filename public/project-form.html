@@ -463,10 +463,13 @@
 
   // Save → continue: next project to edit (edit mode) or a fresh form (new mode)
   $('nextBtn').addEventListener('click', async () => {
+    // resolve "next" BEFORE saving: saving can change this project's filter
+    // membership (e.g. adding a YouTube link drops it from the "없음" filter),
+    // and then it could no longer be located in the list.
+    const nid = editId ? await nextProjectId(editId) : null;
     const id = await save($('nextLabel'));
     if (id == null) return;
     if (editId) {
-      const nid = await nextProjectId(editId);
       if (nid) { location.href = `/project-form.html?id=${nid}`; return; }
       SN.toast('더 이상 다음 프로젝트가 없습니다');
       setTimeout(() => location.href = '/admin.html', 800);
