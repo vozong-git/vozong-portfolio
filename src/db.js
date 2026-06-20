@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS admin_state (
   refresh_token    TEXT,                             -- AES-256-GCM encrypted
   image_folder_id  TEXT,
   audio_folder_id  TEXT,
+  theme            TEXT NOT NULL DEFAULT 'ember',     -- site-wide accent preset
   updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -85,6 +86,12 @@ function init() {
   const cols = db.prepare('PRAGMA table_info(projects)').all();
   if (!cols.some((c) => c.name === 'youtube_url')) {
     db.exec('ALTER TABLE projects ADD COLUMN youtube_url TEXT');
+  }
+
+  // migration: admin_state.theme (site-wide accent preset) added later
+  const aCols = db.prepare('PRAGMA table_info(admin_state)').all();
+  if (!aCols.some((c) => c.name === 'theme')) {
+    db.exec("ALTER TABLE admin_state ADD COLUMN theme TEXT NOT NULL DEFAULT 'ember'");
   }
 
   // migration: drop the category CHECK constraint. SQLite can't ALTER a CHECK in
@@ -228,6 +235,20 @@ function saveContact({ email, phone, location, headline }) {
   }
 }
 
+/* ── theme (site-wide accent preset) ── */
+function getTheme() {
+  open();
+  const row = db.prepare('SELECT theme FROM admin_state WHERE id = 1').get();
+  return (row && row.theme) || 'ember';
+}
+
+function setTheme(theme) {
+  open();
+  const existing = db.prepare('SELECT id FROM admin_state WHERE id = 1').get();
+  if (existing) db.prepare(`UPDATE admin_state SET theme = ?, updated_at = datetime('now') WHERE id = 1`).run(theme);
+  else db.prepare(`INSERT INTO admin_state (id, theme) VALUES (1, ?)`).run(theme);
+}
+
 /* ── YouTube resolve cache ── */
 // Positive matches are cached forever. Negative results (video_id = '' "no
 // match") expire after this many days so a video uploaded/renamed later can be
@@ -258,6 +279,7 @@ module.exports = {
   get db() { return open(); },
   getAdminState, saveAdminIdentity, setFolderId,
   getContact, saveContact,
+  getTheme, setTheme,
   getYtCache, putYtCache,
   encrypt, decrypt,
 };

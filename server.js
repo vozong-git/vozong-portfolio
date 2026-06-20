@@ -14,6 +14,7 @@ const assetsRouter = require('./src/routes/assets');
 const contactRouter = require('./src/routes/contact');
 const backupRouter = require('./src/routes/backup');
 const youtubeRouter = require('./src/routes/youtube');
+const themeRouter = require('./src/routes/theme');
 
 db.init(); // ensure schema exists
 
@@ -55,6 +56,14 @@ app.use('/api/assets', apiLimiter, assetsRouter);
 app.use('/api/contact', apiLimiter, contactRouter);
 app.use('/api/backup', apiLimiter, backupRouter);
 app.use('/api/youtube', apiLimiter, youtubeRouter);
+app.use('/api/theme', apiLimiter, themeRouter.router);
+
+// Tiny script loaded synchronously in each page <head> so the saved accent
+// preset is applied before first paint (no flash). Public, always fresh.
+app.get('/theme.js', (_req, res) => {
+  res.type('application/javascript').set('Cache-Control', 'no-cache');
+  res.send(`document.documentElement.dataset.theme=${JSON.stringify(db.getTheme())};`);
+});
 
 app.get('/api/health', (_req, res) => {
   const linked = !!(db.getAdminState() && db.getAdminState().refresh_token);

@@ -2,7 +2,146 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Studio Noir custom styles (migrated from public/assets/base.css) ── */
+/* ── Theme tokens as CSS variables (R G B channels for /opacity support) ──
+   Surfaces + text are shared per light/dark mode; only the accent (primary*)
+   family changes between the four presets. Dark mode follows the OS via
+   prefers-color-scheme; data-theme on <html> selects the accent preset.      */
+:root {
+  color-scheme: light dark;
+  /* accent — Ember (default, light) */
+  --color-primary: 193 95 60;
+  --color-primary-fixed-dim: 193 95 60;
+  --color-primary-fixed: 168 78 46;
+  --color-surface-tint: 193 95 60;
+  --color-inverse-primary: 232 168 142;
+  --color-primary-container: 242 225 216;
+  --color-on-primary-container: 138 61 34;
+  --color-on-primary-fixed-variant: 138 61 34;
+  --color-on-primary: 255 255 255;
+  --color-on-primary-fixed: 255 255 255;
+  /* surfaces + text — warm cream (shared by all presets in light mode) */
+  --color-background: 250 249 245;
+  --color-on-background: 42 40 36;
+  --color-surface: 255 255 255;
+  --color-surface-dim: 240 238 232;
+  --color-surface-bright: 255 255 255;
+  --color-surface-container-lowest: 244 242 235;
+  --color-surface-container-low: 250 248 243;
+  --color-surface-container: 252 251 248;
+  --color-surface-container-high: 241 239 232;
+  --color-surface-container-highest: 233 230 221;
+  --color-surface-variant: 239 237 229;
+  --color-on-surface: 42 40 36;
+  --color-on-surface-variant: 107 104 98;
+  --color-inverse-surface: 42 40 36;
+  --color-inverse-on-surface: 250 249 245;
+  --color-outline: 156 152 141;
+  --color-outline-variant: 230 226 216;
+  --color-success: 47 125 79;
+  --color-error: 179 38 30;
+  --color-on-error: 255 255 255;
+  --color-error-container: 247 222 218;
+  --color-on-error-container: 65 14 11;
+  --color-secondary: 107 104 98;
+  --color-secondary-container: 107 104 98;
+  --color-on-secondary: 255 255 255;
+  --color-on-secondary-container: 42 40 36;
+  --color-tertiary: 107 104 98;
+  --color-tertiary-container: 107 104 98;
+  --color-on-tertiary: 255 255 255;
+  --color-on-tertiary-container: 42 40 36;
+  --color-secondary-fixed: 239 234 224;
+  --color-secondary-fixed-dim: 217 210 196;
+  --color-on-secondary-fixed: 42 40 36;
+  --color-on-secondary-fixed-variant: 90 86 78;
+  --color-tertiary-fixed: 239 234 224;
+  --color-tertiary-fixed-dim: 217 210 196;
+  --color-on-tertiary-fixed: 42 40 36;
+  --color-on-tertiary-fixed-variant: 90 86 78;
+}
+
+/* accent presets (light) — override only the primary family */
+:root[data-theme="sage"] {
+  --color-primary: 94 114 89; --color-primary-fixed-dim: 94 114 89; --color-surface-tint: 94 114 89;
+  --color-primary-fixed: 74 92 70; --color-inverse-primary: 174 192 166;
+  --color-primary-container: 226 232 221; --color-on-primary-container: 59 74 55; --color-on-primary-fixed-variant: 59 74 55;
+}
+:root[data-theme="dusk"] {
+  --color-primary: 81 110 139; --color-primary-fixed-dim: 81 110 139; --color-surface-tint: 81 110 139;
+  --color-primary-fixed: 64 89 112; --color-inverse-primary: 169 190 210;
+  --color-primary-container: 220 230 239; --color-on-primary-container: 50 69 88; --color-on-primary-fixed-variant: 50 69 88;
+}
+:root[data-theme="plum"] {
+  --color-primary: 135 86 108; --color-primary-fixed-dim: 135 86 108; --color-surface-tint: 135 86 108;
+  --color-primary-fixed: 110 69 90; --color-inverse-primary: 210 174 190;
+  --color-primary-container: 239 224 231; --color-on-primary-container: 90 56 72; --color-on-primary-fixed-variant: 90 56 72;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* accent — Ember (dark) */
+    --color-primary: 222 132 96; --color-primary-fixed-dim: 222 132 96; --color-surface-tint: 222 132 96;
+    --color-primary-fixed: 233 158 124; --color-inverse-primary: 168 78 46;
+    --color-primary-container: 74 41 26; --color-on-primary-container: 240 198 178; --color-on-primary-fixed-variant: 240 198 178;
+    --color-on-primary: 255 255 255; --color-on-primary-fixed: 255 255 255;
+    /* surfaces + text — warm dark (shared) */
+    --color-background: 38 34 32;
+    --color-on-background: 236 233 227;
+    --color-surface: 31 27 25;
+    --color-surface-dim: 26 23 21;
+    --color-surface-bright: 54 49 45;
+    --color-surface-container-lowest: 26 22 20;
+    --color-surface-container-low: 34 30 28;
+    --color-surface-container: 39 35 32;
+    --color-surface-container-high: 50 45 41;
+    --color-surface-container-highest: 61 56 51;
+    --color-surface-variant: 50 45 41;
+    --color-on-surface: 236 233 227;
+    --color-on-surface-variant: 181 175 166;
+    --color-inverse-surface: 236 233 227;
+    --color-inverse-on-surface: 42 40 36;
+    --color-outline: 140 132 120;
+    --color-outline-variant: 67 62 57;
+    --color-success: 105 192 136;
+    --color-error: 242 184 181;
+    --color-on-error: 96 20 16;
+    --color-error-container: 140 29 24;
+    --color-on-error-container: 249 222 220;
+    --color-secondary: 181 175 166;
+    --color-secondary-container: 181 175 166;
+    --color-on-secondary: 38 34 32;
+    --color-on-secondary-container: 236 233 227;
+    --color-tertiary: 181 175 166;
+    --color-tertiary-container: 181 175 166;
+    --color-on-tertiary: 38 34 32;
+    --color-on-tertiary-container: 236 233 227;
+    --color-secondary-fixed: 74 69 63;
+    --color-secondary-fixed-dim: 90 84 77;
+    --color-on-secondary-fixed: 236 233 227;
+    --color-on-secondary-fixed-variant: 200 194 185;
+    --color-tertiary-fixed: 74 69 63;
+    --color-tertiary-fixed-dim: 90 84 77;
+    --color-on-tertiary-fixed: 236 233 227;
+    --color-on-tertiary-fixed-variant: 200 194 185;
+  }
+  :root[data-theme="sage"] {
+    --color-primary: 150 173 142; --color-primary-fixed-dim: 150 173 142; --color-surface-tint: 150 173 142;
+    --color-primary-fixed: 174 192 166; --color-inverse-primary: 74 92 70;
+    --color-primary-container: 42 53 38; --color-on-primary-container: 198 214 190; --color-on-primary-fixed-variant: 198 214 190;
+  }
+  :root[data-theme="dusk"] {
+    --color-primary: 138 170 198; --color-primary-fixed-dim: 138 170 198; --color-surface-tint: 138 170 198;
+    --color-primary-fixed: 169 190 210; --color-inverse-primary: 64 89 112;
+    --color-primary-container: 36 49 62; --color-on-primary-container: 190 210 228; --color-on-primary-fixed-variant: 190 210 228;
+  }
+  :root[data-theme="plum"] {
+    --color-primary: 198 150 172; --color-primary-fixed-dim: 198 150 172; --color-surface-tint: 198 150 172;
+    --color-primary-fixed: 210 174 190; --color-inverse-primary: 110 69 90;
+    --color-primary-container: 58 38 48; --color-on-primary-container: 226 198 210; --color-on-primary-fixed-variant: 226 198 210;
+  }
+}
+
+/* ── custom styles (migrated from public/assets/base.css) ── */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
   font-weight: normal; font-style: normal; font-size: 24px; line-height: 1;
@@ -10,10 +149,10 @@
   white-space: nowrap; word-wrap: normal; direction: ltr;
   -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased;
 }
-/* soft card elevation (warm light theme) */
+/* soft card elevation */
 .inner-glow { box-shadow: 0 1px 2px rgba(60,50,40,0.05), 0 1px 3px rgba(60,50,40,0.05); }
-/* active CTA — gentle coral-tinted shadow (no neon bloom) */
-.glow-bloom { box-shadow: 0 2px 10px rgba(193,95,60,0.22); }
+/* active CTA — gentle accent-tinted shadow (follows the current preset) */
+.glow-bloom { box-shadow: 0 2px 10px rgb(var(--color-primary) / 0.22); }
 /* very faint console grid backdrop for auth screen */
 .console-grid {
   background-image:
@@ -26,10 +165,11 @@ input, textarea, select { font-family: 'JetBrains Mono', monospace; }
   position: fixed; right: 24px; bottom: 24px; z-index: 100;
   padding: 12px 18px; border-radius: .25rem; font: 500 13px 'JetBrains Mono', monospace;
   letter-spacing: .03em; border-left: 2px solid; opacity: 0; transform: translateY(8px);
-  box-shadow: 0 4px 14px rgba(60,50,40,0.12); background: #ffffff;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  background: rgb(var(--color-surface-container-high)); color: rgb(var(--color-on-surface));
   transition: opacity .2s, transform .2s;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
-.toast.ok  { color: #2A2824; border-color: #C15F3C; }
-.toast.err { color: #B3261E; border-color: #B3261E; }
+.toast.ok  { border-color: rgb(var(--color-primary)); }
+.toast.err { color: rgb(var(--color-error)); border-color: rgb(var(--color-error)); }
 [hidden] { display: none !important; }

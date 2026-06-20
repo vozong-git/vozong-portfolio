@@ -8,6 +8,16 @@
 
 ---
 
+## ✅ 2026-06-20 — 테마 프리셋 4종 + 다크모드(시스템 추종)
+- **색 토큰 → CSS 변수화**: `src/styles/app.css` `:root`에 `--color-*`(R G B 채널)로 정의, `tailwind.config.js`는 `rgb(var(--color-x) / <alpha>)`로 매핑(`/10` 등 opacity 그대로 유지). 빌드·opacity 검증 OK.
+- **다크모드**: `@media (prefers-color-scheme: dark)`로 OS 따라 자동. 서피스/텍스트는 라이트·다크 공유, accent만 프리셋별 교체. theme-color 메타도 light/dark 분기.
+- **프리셋 4종**(Claude 무드): ember(기본)·sage·dusk·plum. accent 계열(primary/fixed/container/on-container)만 `:root[data-theme=...]`로 override.
+- **저장·적용**: `admin_state.theme`(마이그레이션 추가) → `src/routes/theme.js`(GET 공개/PUT admin) + server.js `/theme.js`(각 페이지 head 동기 로드로 FOUC 방지). 6개 HTML head에 `<script src="/theme.js">` 추가.
+- **어드민 UI**: 사이드바 THEME 스와치 4개, 클릭 시 낙관적 적용+`PUT /api/theme`+토스트.
+- 검증: node --check, build:css(프리셋·dark media·opacity 컴파일 확인), 부팅 스모크(`/theme.js`·`GET /api/theme`·PUT 401). ⏳ 육안: 시스템 다크 전환·프리셋 4종 색감.
+
+---
+
 ## ✅ 2026-06-20 — YouTube 검색 할당량 대응
 - **증상**: 영상 업데이트를 많이 한 뒤 어느 시점부터 자동 검색이 안 됨. **원인**: `search.list`=100 units/호출, YouTube Data API 일 10k 한도 → 하루 ~100건 초과 시 당일 전부 실패. 공개 상세페이지가 미저장 프로젝트마다 방문 시 검색을 시도해 할당량을 빠르게 소진(436개×100=43.6k).
 - **Fix 1 (음수 캐시 TTL)**: `db.getYtCache`가 빈 결과(매칭 실패)를 7일 후 만료 처리 → 나중에 올린/이름 바꾼 영상이 재해석됨. 양수 매칭은 여전히 영구 캐시. (`src/db.js` `YT_NEG_TTL_DAYS`)

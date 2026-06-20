@@ -49,6 +49,7 @@ src/
     contact.js     공개 GET(이메일/전화 base64 난독화) + 관리자 GET /full(평문) + PUT
     backup.js      POST /api/backup(admin 또는 X-Backup-Token, 상수시간 비교) → SQLite .backup() → Drive portfolio_backup
     youtube.js     GET /api/youtube/resolve — projectId(공개=캐시 온리, API 호출 안 함) / q=(관리자=API 검색). "아티스트 곡명"→영상 id. yt_cache: 양수 영구 캐시, 빈 결과(매칭 실패)는 7일 TTL 후 재해석. search.list=100 units(일 10k 한도)라 공개 경로는 할당량 미소비
+    theme.js       GET /api/theme(공개: 현재+목록) / PUT(admin: 프리셋 변경). 별도로 server.js가 `/theme.js`(head 동기 로더)를 admin_state.theme에서 서빙
 scripts/
   backup.js        cron용 standalone 백업 러너
   trigger-backup.js Render cron이 web /api/backup을 HTTP 트리거(디스크 공유 불가). 실패 시 ALERT_WEBHOOK
@@ -82,7 +83,9 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS: inner-glow/glow-bl
 - 배경 크림 `#FAF9F5`(완전 흰색 아님), 본문 `#2A2824`/보조 `#6B6862`, 카드 `#FCFBF8`
 - 액센트 **클로드 코랄 `#C15F3C`** (링크·활성·기본 버튼). 카테고리·태그는 중성 그레이로 통일(코랄이 유일 액센트)
 - 폰트: Hanken Grotesk(제목) / Inter(본문) / JetBrains Mono(스펙·수치)
-- 토큰은 `tailwind.config.js`(colors), 커스텀 효과는 `src/styles/app.css`에 정의. 의미론적 토큰(background/on-surface/surface-container/primary-fixed-dim 등)이라 토큰 값만 바꾸면 전 페이지 일괄 전환
+- **테마 토큰 = CSS 변수**: `src/styles/app.css`의 `:root`에 `--color-*`(R G B 채널, opacity `/n` 지원)로 정의, `tailwind.config.js`는 `rgb(var(--color-x) / <alpha>)`로 이름만 연결. 의미론적 토큰이라 값만 바꾸면 전 페이지 일괄 전환
+- **다크모드**: `@media (prefers-color-scheme: dark)`로 OS 설정 자동 추종(수동 토글 없음). 서피스/텍스트는 라이트·다크 각각 공유, accent(primary*)만 프리셋별로 교체
+- **테마 프리셋 4종**(accent): `ember`(코랄·기본)·`sage`·`dusk`·`plum`. `admin_state.theme`에 사이트 전역 저장 → `/theme.js`(각 페이지 `<head>`에서 동기 로드, FOUC 방지)가 `<html data-theme>` 설정. 어드민 사이드바 THEME 스와치로 변경(`PUT /api/theme`), 목록·검증은 `src/routes/theme.js`
 - favicon(`public/favicon.svg`)·og(`public/assets/og.png`)도 코랄 톤
 
 ## 검증 상태

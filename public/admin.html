@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <link href="/assets/app.css" rel="stylesheet"/>
+<script src="/theme.js"></script>
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
 
@@ -28,6 +29,10 @@
       <span class="material-symbols-outlined">visibility</span><span class="font-label-caps text-label-caps">Public View</span></a>
   </div>
   <div class="mt-auto px-4 flex flex-col gap-1 pt-4 border-t border-outline-variant">
+    <div class="px-4 pt-1 pb-2">
+      <p class="font-label-caps text-[10px] text-outline tracking-widest mb-2">THEME</p>
+      <div id="themePicker" class="flex gap-2"></div>
+    </div>
     <div id="who" class="px-4 py-2 font-metadata-sm text-[11px] text-outline truncate"></div>
     <a id="driveStatus" class="px-4 py-2 font-metadata-sm text-[11px] flex items-center gap-2"></a>
     <button id="backupBtn" class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high transition-all inner-glow text-left">
@@ -111,6 +116,30 @@
       el.className = 'px-4 py-2 font-metadata-sm text-[11px] flex items-center gap-2 text-secondary';
       el.innerHTML = '<span class="material-symbols-outlined text-sm">cloud_off</span> Drive not linked';
     }
+  } catch (_) {}
+
+  // theme picker — site-wide accent preset (light/dark variants are automatic)
+  try {
+    const { theme, themes } = await SN.api('GET', '/api/theme');
+    const wrap = document.getElementById('themePicker');
+    const paint = (active) => {
+      wrap.innerHTML = themes.map((t) => `
+        <button type="button" data-theme-key="${t.key}" title="${t.label}" aria-label="${t.label}"
+          aria-pressed="${t.key === active}"
+          class="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 ${t.key === active ? 'border-on-surface scale-110' : 'border-outline-variant'}"
+          style="background:${t.swatch}"></button>`).join('');
+    };
+    paint(theme);
+    document.documentElement.dataset.theme = theme;
+    wrap.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-theme-key]');
+      if (!btn) return;
+      const key = btn.dataset.themeKey;
+      const prev = document.documentElement.dataset.theme;
+      document.documentElement.dataset.theme = key; paint(key); // optimistic
+      try { await SN.api('PUT', '/api/theme', { theme: key }); SN.toast(`Theme: ${key}`); }
+      catch (err) { document.documentElement.dataset.theme = prev; paint(prev); SN.toast(err.message || 'Theme change failed', 'err'); }
+    });
   } catch (_) {}
 
   let filter = '';
