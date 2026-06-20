@@ -174,31 +174,30 @@ input, textarea, select { font-family: 'JetBrains Mono', monospace; }
 .toast.err { color: rgb(var(--color-error)); border-color: rgb(var(--color-error)); }
 [hidden] { display: none !important; }
 
-/* Contact modal: fade in with a gentle blur ramp (blur 0 → 2px) instead of a
-   hard cut. Kept in the DOM (no display toggle) so the transition can run;
-   visibility + pointer-events make it inert while closed. */
-/* No opacity on the wrapper itself: an opacity<1 ancestor isolates the
-   backdrop-filter so it can't blur the page until it hits 1 (the blur "jumps").
-   Instead the backdrop animates its own blur+tint, and the panel its own
-   opacity — both composite against the page throughout. */
-.contact-modal { pointer-events: none; }
-.contact-modal.is-open { pointer-events: auto; }
-.contact-modal .cm-backdrop {
+/* Generic modal (Contact + project detail): fade in a gentle blur + tint and
+   float a panel up. No opacity on the wrapper itself — an opacity<1 ancestor
+   isolates backdrop-filter so it can't blur the page until it hits 1 (the blur
+   "jumps"); instead the backdrop animates its own blur+tint and the panel its
+   own opacity, so both composite against the page throughout. The element stays
+   in the DOM (pointer-events toggles inertness) so the transition can run. */
+.sn-modal { pointer-events: none; }
+.sn-modal.is-open { pointer-events: auto; }
+.sn-modal .sn-backdrop {
   background-color: rgb(var(--color-on-surface) / 0);
   backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0);
   transition: background-color .3s ease, backdrop-filter .3s ease, -webkit-backdrop-filter .3s ease;
 }
-.contact-modal.is-open .cm-backdrop {
+.sn-modal.is-open .sn-backdrop {
   background-color: rgb(var(--color-on-surface) / .3);
   backdrop-filter: blur(0.4px); -webkit-backdrop-filter: blur(0.4px);
 }
-.contact-modal .cm-panel {
+.sn-modal .sn-panel {
   opacity: 0; transform: translateY(8px) scale(.98);
   transition: opacity .25s ease, transform .25s ease;
 }
-.contact-modal.is-open .cm-panel { opacity: 1; transform: none; }
+.sn-modal.is-open .sn-panel { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
-  .contact-modal .cm-backdrop, .contact-modal .cm-panel { transition: none; }
+  .sn-modal .sn-backdrop, .sn-modal .sn-panel { transition: none; }
 }
 
 /* Admin list: on phones the 6-column table would overflow, so each row becomes

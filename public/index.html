@@ -75,9 +75,9 @@
 </main>
 
 <!-- Contact modal: opens over the current view instead of navigating to contact.html -->
-<div id="contactModal" aria-hidden="true" class="contact-modal fixed inset-0 z-[60] flex items-center justify-center p-4">
-  <div id="contactBackdrop" class="cm-backdrop absolute inset-0"></div>
-  <div role="dialog" aria-modal="true" aria-labelledby="cmTitle" class="cm-panel relative w-full max-w-md bg-surface-container border border-outline-variant rounded-xl inner-glow p-8">
+<div id="contactModal" aria-hidden="true" class="sn-modal fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <div id="contactBackdrop" class="sn-backdrop absolute inset-0"></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="cmTitle" class="sn-panel relative w-full max-w-md bg-surface-container border border-outline-variant rounded-xl inner-glow p-8">
     <button id="contactClose" aria-label="닫기" class="absolute top-3 right-3 text-on-surface-variant hover:text-primary-fixed-dim p-1"><span class="material-symbols-outlined">close</span></button>
     <h2 id="cmTitle" class="font-display-lg text-headline-lg text-primary-fixed-dim">Kim, Bojong</h2>
     <p id="cm_headline" class="font-metadata-sm text-metadata-sm text-on-surface-variant mt-1 mb-6">Senior Sound Engineer · Mixing / Playback / Live Sound</p>
@@ -86,6 +86,15 @@
       <a id="cm_phone_row" hidden class="flex items-center gap-3 text-on-surface hover:text-primary-fixed-dim" href="#"><span class="material-symbols-outlined text-primary-fixed-dim">call</span> <span id="cm_phone"></span></a>
       <div id="cm_location_row" hidden class="flex items-center gap-3 text-on-surface-variant"><span class="material-symbols-outlined text-primary-fixed-dim">location_on</span> <span id="cm_location"></span></div>
     </div>
+  </div>
+</div>
+
+<!-- Project detail modal: used on desktop (md+) to float the detail over the
+     list; on mobile the detail still renders inline in #projectArea. -->
+<div id="detailModal" aria-hidden="true" class="sn-modal hidden md:flex fixed inset-0 z-[55] items-center justify-center p-4 md:p-8">
+  <div id="detailBackdrop" class="sn-backdrop absolute inset-0"></div>
+  <div role="dialog" aria-modal="true" aria-label="프로젝트 상세" class="sn-panel relative w-full max-w-4xl max-h-[88vh] overflow-y-auto bg-surface-container border border-outline-variant rounded-xl inner-glow p-6 md:p-8">
+    <div id="detailModalBody"></div>
   </div>
 </div>
 
@@ -98,7 +107,12 @@
   let activeCat = '';
   let savedList = null; // list HTML + scroll position to restore after a detail view
   let detailOpen = false; // true while a project detail is shown (drives history/back)
+  let detailMode = null;  // 'modal' (desktop overlay) | 'inline' (mobile) while open
   const area = document.getElementById('projectArea');
+  const detailModal = document.getElementById('detailModal');
+  const detailModalBody = document.getElementById('detailModalBody');
+  const mqDesktop = window.matchMedia('(min-width: 768px)');
+  const isDesktop = () => mqDesktop.matches;
   const CATS = [
     { key: 'studio', label: 'Studio Work' },
     { key: 'playback', label: 'Playback & Live Tune' },
@@ -160,7 +174,11 @@
     e.preventDefault();
     // leaving a detail via the sidebar: collapse the detail history entry so a
     // later back gesture doesn't drop us back onto a stale detail.
-    if (detailOpen) { history.replaceState(null, '', location.pathname); detailOpen = false; savedList = null; }
+    if (detailOpen) {
+      history.replaceState(null, '', location.pathname);
+      if (detailMode === 'modal') closeDetailModal();
+      detailOpen = false; detailMode = null; savedList = null;
+    }
     load(a.dataset.cat || '');
   });
 
@@ -183,22 +201,34 @@
     if (chev) chev.style.transform = collapse ? 'rotate(-90deg)' : '';
   }
 
-  area.addEventListener('click', (e) => {
-    const secTog = e.target.closest('[data-sec-toggle]');
-    if (secTog) { toggleSection(secTog); return; }
-    const card = e.target.closest('article[data-id]');
-    if (card) { openDetail(card.dataset.id); return; }
+  // swap the detail's main image (works whether the detail is inline or in the modal)
+  function switchMain(img) {
+    const m = document.getElementById('detailMain'); if (m) m.src = img + '?thumb=800';
+    const bg = document.getElementById('detailBg'); if (bg) bg.src = img + '?thumb=160';
+  }
+  // detail-view interactions shared by the inline area and the modal body
+  function handleDetailClick(e) {
     if (e.target.closest('#backBtn')) {
-      // route through history so the button and the iOS edge-swipe-back gesture
+      // route through history so Back button, iOS swipe-back, and modal close
       // share one path — popstate runs restoreList().
       if (detailOpen) history.back(); else restoreList();
       return;
     }
     const thumb = e.target.closest('button[data-img]');
-    if (thumb) {
-      const m = document.getElementById('detailMain'); if (m) m.src = thumb.dataset.img + '?thumb=800';
-      const bg = document.getElementById('detailBg'); if (bg) bg.src = thumb.dataset.img + '?thumb=160';
-    }
+    if (thumb) switchMain(thumb.dataset.img);
+  }
+
+  area.addEventListener('click', (e) => {
+    const secTog = e.target.closest('[data-sec-toggle]');
+    if (secTog) { toggleSection(secTog); return; }
+    const card = e.target.closest('article[data-id]');
+    if (card) { openDetail(card.dataset.id); return; }
+    handleDetailClick(e);
+  });
+  detailModalBody.addEventListener('click', handleDetailClick);
+  // backdrop click / Escape close the detail modal (through history for consistency)
+  document.getElementById('detailBackdrop').addEventListener('click', () => {
+    if (detailOpen && detailMode === 'modal') history.back();
   });
 
   function ytId(url) {
@@ -207,33 +237,54 @@
     return m ? m[1] : null;
   }
 
-  // Open a project detail. On a real navigation (card click) we push a history
-  // entry so the browser Back button AND the iOS edge-swipe-back gesture return
-  // to the list. popstate replays this with push=false (no extra entry).
+  function openDetailModal() {
+    detailModal.setAttribute('aria-hidden', 'false');
+    void detailModal.offsetWidth; // commit the closed (blur 0) baseline so the open transition ramps
+    detailModal.classList.add('is-open');
+  }
+  function closeDetailModal() {
+    detailModal.classList.remove('is-open');
+    detailModal.setAttribute('aria-hidden', 'true');
+    detailModalBody.innerHTML = '';
+  }
+
+  // Open a project detail. Desktop floats it in a modal over the list; mobile
+  // renders it inline in #projectArea (keeping list scroll in savedList). Either
+  // way a history entry is pushed so Back / iOS swipe-back returns to the list.
+  // popstate replays this with push=false (no extra entry).
   async function openDetail(id, push = true) {
+    const modal = isDesktop();
     if (push) {
-      // remember the current list + scroll so returning can restore it
-      savedList = { html: area.innerHTML, y: window.scrollY || document.documentElement.scrollTop || 0 };
       history.pushState({ d: id }, '', '?project=' + encodeURIComponent(id));
+      // inline mode replaces the list, so remember it + scroll to restore later
+      if (!modal) savedList = { html: area.innerHTML, y: window.scrollY || document.documentElement.scrollTop || 0 };
     }
     detailOpen = true;
-    area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>`;
+    detailMode = modal ? 'modal' : 'inline';
+    const loading = `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant">Loading…</p>`;
+    if (modal) { detailModalBody.innerHTML = loading; openDetailModal(); }
+    else { area.innerHTML = loading; }
     try {
       const { project: p } = await SN.api('GET', `/api/projects/${id}`);
-      area.innerHTML = detailView(p);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const html = detailView(p);
+      if (detailMode === 'modal') { detailModalBody.innerHTML = html; detailModal.querySelector('.sn-panel').scrollTop = 0; }
+      else { area.innerHTML = html; window.scrollTo({ top: 0, behavior: 'smooth' }); }
       // No saved video → resolve a search/watch link in the background.
       // Saved video → watch the embed and reveal the fallback only if it's blocked.
       if (!ytId(p.youtube_url)) enhanceYouTubeLink(p.id);
       else watchEmbed();
     } catch (e) {
-      area.innerHTML = `<p class="font-metadata-sm text-metadata-sm text-error">${SN.escape(e.message)}</p>`;
+      const err = `<p class="font-metadata-sm text-metadata-sm text-error">${SN.escape(e.message)}</p>`;
+      if (detailMode === 'modal') detailModalBody.innerHTML = err; else area.innerHTML = err;
     }
   }
 
-  // Restore the list (exact scroll if we have it, else reload the category).
+  // Return to the list. Modal: just close it (the list is untouched behind).
+  // Inline: restore the saved list + scroll, else reload the category.
   function restoreList() {
-    detailOpen = false;
+    const wasModal = detailMode === 'modal';
+    detailOpen = false; detailMode = null;
+    if (wasModal) { closeDetailModal(); return; }
     if (savedList) { area.innerHTML = savedList.html; window.scrollTo(0, savedList.y); savedList = null; }
     else load(activeCat);
   }
@@ -424,7 +475,11 @@
   document.getElementById('contactLink').addEventListener('click', (e) => { e.preventDefault(); openContact(); });
   document.getElementById('contactClose').addEventListener('click', closeContact);
   document.getElementById('contactBackdrop').addEventListener('click', closeContact);
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && contactModal.classList.contains('is-open')) closeContact(); });
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (contactModal.classList.contains('is-open')) { closeContact(); return; }
+    if (detailOpen && detailMode === 'modal') history.back();
+  });
 
   // deep link: /?project=<id> opens that project's detail directly (admins can
   // preview drafts this way from the dashboard; also a shareable detail link).
@@ -434,6 +489,7 @@
     // list even when the detail was opened straight from a shared link.
     history.replaceState(null, '', location.pathname);
     history.pushState({ d: previewId }, '', '?project=' + encodeURIComponent(previewId));
+    if (isDesktop()) load('');   // render the overview behind the modal
     openDetail(previewId, false);
   } else {
     history.replaceState(null, '');

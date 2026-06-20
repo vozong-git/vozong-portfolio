@@ -85,7 +85,10 @@ curl -I --max-time 20 https://vozong-portfolio.onrender.com/
   (`ALL YOUTUBE`, `YOUTUBE 있음`, `YOUTUBE 없음`). These persist in
   `sessionStorage`, and `Save & Next` in the project form follows the same
   filter set.
-- Current public project detail preserves list scroll when returning.
+- Public project detail opens as a floating modal on desktop (md+, over the
+  untouched list) and inline in #projectArea on mobile (list scroll restored on
+  return). Both push a history entry so Back / iOS swipe-back / Esc / backdrop
+  all return to the list via one popstate path.
 - iOS hides the floating scroll-to-top button because iOS already has
   status-bar tap-to-top.
 
