@@ -451,7 +451,6 @@
             <div class="relative aspect-video bg-surface-container-lowest border border-outline-variant rounded inner-glow overflow-hidden flex items-center justify-center">${gallery}</div>
             ${thumbs}
             ${audioBlock}
-            ${releaseBlock}
             ${ytBlock}
           </div>
           <div class="lg:col-span-1 flex flex-col gap-stack-sm">
@@ -466,6 +465,7 @@
             ${p.completion_date ? `<p class="font-metadata-sm text-metadata-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">event</span> ${SN.escape(p.completion_date)}</p>` : ''}
             ${specBlock}
             ${descBlock}
+            ${releaseBlock}
           </div>
         </div>
       </div>`;
