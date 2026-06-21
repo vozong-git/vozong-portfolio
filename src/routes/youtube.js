@@ -73,6 +73,19 @@ router.get('/resolve', async (req, res) => {
   return res.json(await lookup(q, { allowApi: false }));
 });
 
+// GET /api/youtube/oembed?v=VIDEOID — video title via YouTube oEmbed (no key,
+// no quota). Used by the editor to show the matched video's title.
+router.get('/oembed', async (req, res) => {
+  const v = String(req.query.v || '').trim();
+  if (!/^[\w-]{11}$/.test(v)) return res.status(400).json({ error: 'bad_id' });
+  try {
+    const r = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent('https://www.youtube.com/watch?v=' + v)}`);
+    if (!r.ok) return res.json({ title: null });
+    const d = await r.json();
+    res.json({ title: d.title || null, author: d.author_name || null });
+  } catch (e) { console.error('[youtube oembed]', e?.message || e); res.json({ title: null }); }
+});
+
 // Extract an 11-char video id from any common YouTube URL form.
 function ytId(url) {
   if (!url) return null;

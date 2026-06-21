@@ -116,6 +116,7 @@
           </button>
         </div>
         <input id="f_apple" placeholder="https://music.apple.com/…" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+        <div id="applePreview" hidden class="mt-2"></div>
       </section>
     </div>
 
@@ -301,6 +302,7 @@
       setStatusCover(p.cover_url);
       renderExisting(p.assets || []);
       renderYtPreview();
+      renderApplePreview();
     } catch (e) { SN.toast(e.message, 'err'); }
   }
 
@@ -410,21 +412,58 @@
     const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
     return m ? m[1] : null;
   }
-  function renderYtPreview() {
+  const ytTitleCache = {};
+  async function renderYtPreview() {
     const id = ytId($('f_youtube').value.trim());
     const box = $('ytPreview');
     if (!id) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     box.innerHTML = `
       <div class="flex gap-3 items-center bg-surface-container-lowest border border-outline-variant rounded p-2">
-        <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" alt="" class="w-28 rounded border border-outline-variant"/>
-        <div class="flex flex-col gap-1 font-metadata-sm text-[11px]">
+        <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" alt="" class="w-28 rounded border border-outline-variant shrink-0"/>
+        <div class="flex flex-col gap-1 font-metadata-sm text-[11px] min-w-0">
+          <span id="ytTitleLine" class="text-on-surface font-semibold break-words">제목 불러오는 중…</span>
           <span class="text-on-surface-variant">저장하면 상세 페이지에서 임베드 재생됩니다.</span>
           <a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener" class="text-primary-fixed-dim hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">open_in_new</span> YouTube에서 열어 확인</a>
         </div>
       </div>`;
+    // resolve the video title (oEmbed, cached per id)
+    let title = ytTitleCache[id];
+    if (title === undefined) {
+      try { const r = await SN.api('GET', `/api/youtube/oembed?v=${id}`); title = r.title || null; } catch { title = null; }
+      ytTitleCache[id] = title;
+    }
+    if (ytId($('f_youtube').value.trim()) !== id) return; // field changed mid-fetch
+    const line = document.getElementById('ytTitleLine');
+    if (line) { line.textContent = title || '(제목을 가져오지 못함)'; line.classList.toggle('text-on-surface-variant', !title); }
   }
   $('f_youtube').addEventListener('input', renderYtPreview);
+
+  // Apple Music: cover + artist + title preview (iTunes Lookup, cached per url)
+  const appleCache = {};
+  async function renderApplePreview() {
+    const url = $('f_apple').value.trim();
+    const box = $('applePreview');
+    if (!/music\.apple\.com\//.test(url)) { box.hidden = true; box.innerHTML = ''; return; }
+    let data = appleCache[url];
+    if (data === undefined) {
+      try { data = await SN.api('GET', `/api/releases/apple-preview?url=${encodeURIComponent(url)}`); } catch { data = null; }
+      appleCache[url] = data;
+    }
+    if ($('f_apple').value.trim() !== url) return; // field changed mid-fetch
+    if (!data || !data.title) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = `
+      <div class="flex gap-3 items-center bg-surface-container-lowest border border-outline-variant rounded p-2">
+        ${data.artwork ? `<img src="${data.artwork}" alt="" class="w-14 h-14 rounded border border-outline-variant shrink-0"/>` : ''}
+        <div class="flex flex-col gap-0.5 font-metadata-sm text-[11px] min-w-0">
+          <span class="text-on-surface font-semibold break-words">${SN.escape(data.title)}</span>
+          <span class="text-on-surface-variant truncate">${SN.escape(data.artist || '')}</span>
+          <a href="${SN.escape(data.url || url)}" target="_blank" rel="noopener" class="hover:underline flex items-center gap-1" style="color:#FA243C"><span class="material-symbols-outlined text-[14px]">open_in_new</span> Apple Music에서 열어 확인</a>
+        </div>
+      </div>`;
+  }
+  $('f_apple').addEventListener('input', renderApplePreview);
   $('ytFindBtn').addEventListener('click', async () => {
     const title = $('f_title').value.trim();
     const q = [$('f_client').value.trim(), title].filter(Boolean).join(' ').trim();
@@ -456,7 +495,7 @@
     $('relFindLabel').textContent = '찾는 중…';
     try {
       const r = await SN.api('GET', `/api/releases/resolve?q=${encodeURIComponent(q)}`);
-      if (r.apple && !$('f_apple').value.trim()) { $('f_apple').value = r.apple; SN.toast('Apple Music 찾음 — 맞는지 확인 후 저장'); }
+      if (r.apple && !$('f_apple').value.trim()) { $('f_apple').value = r.apple; renderApplePreview(); SN.toast('Apple Music 찾음 — 맞는지 확인 후 저장'); }
       else if (r.apple) SN.toast('이미 입력된 링크는 유지했습니다');
       else SN.toast('Apple Music에서 찾지 못했습니다', 'err');
     } catch (e) { SN.toast(e.message, 'err'); }

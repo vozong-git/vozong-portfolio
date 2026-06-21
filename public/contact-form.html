@@ -78,6 +78,28 @@
     $('c_location').value = contact.location || '';
   } catch (e) { SN.toast(e.message, 'err'); }
 
+  // clear (×) button inside each field, so you can wipe and retype
+  function makeClearable(el) {
+    if (!el) return;
+    const margins = [...el.classList].filter(c => /^m[tbxy]?-/.test(c));
+    margins.forEach(c => el.classList.remove(c));
+    const wrap = document.createElement('div');
+    wrap.className = ('relative ' + margins.join(' ')).trim();
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+    el.classList.add('pr-9');
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.tabIndex = -1; btn.setAttribute('aria-label', '지우기');
+    btn.className = 'absolute right-2 top-1/2 -translate-y-1/2 text-outline hover:text-error transition-colors';
+    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">close</span>';
+    wrap.appendChild(btn);
+    const sync = () => { btn.style.display = el.value ? '' : 'none'; };
+    el.addEventListener('input', sync);
+    btn.addEventListener('click', () => { el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); el.focus(); sync(); });
+    sync();
+  }
+  ['c_headline', 'c_email', 'c_phone', 'c_location'].forEach(id => makeClearable(document.getElementById(id)));
+
   $('saveBtn').addEventListener('click', async () => {
     const payload = {
       headline: $('c_headline').value.trim(),

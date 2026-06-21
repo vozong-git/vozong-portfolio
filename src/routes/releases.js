@@ -32,4 +32,35 @@ router.get('/resolve', requireAdmin, async (req, res) => {
   res.json({ apple });
 });
 
+// Pull the track/album id out of a music.apple.com URL (the ?i= track id wins,
+// else the numeric id in the path = album).
+function appleId(url) {
+  const u = String(url);
+  const track = u.match(/[?&]i=(\d+)/);
+  if (track) return track[1];
+  const album = u.match(/\/(\d+)(?:[?#/]|$)/);
+  return album ? album[1] : null;
+}
+
+// GET /api/releases/apple-preview?url=...  (admin) — cover/artist/title for an
+// Apple Music link via the free iTunes Lookup API (no key).
+router.get('/apple-preview', requireAdmin, async (req, res) => {
+  const url = String(req.query.url || '').trim();
+  const id = appleId(url);
+  if (!id) return res.status(400).json({ error: 'bad_url' });
+  try {
+    const r = await fetch(`https://itunes.apple.com/lookup?id=${id}`);
+    if (!r.ok) { console.error('[apple lookup]', r.status); return res.json({ title: null }); }
+    const d = await r.json();
+    const t = d.results && d.results[0];
+    if (!t) return res.json({ title: null });
+    res.json({
+      title: t.trackName || t.collectionName || null,
+      artist: t.artistName || null,
+      artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '300x300') : null,
+      url: t.trackViewUrl || t.collectionViewUrl || url,
+    });
+  } catch (e) { console.error('[apple lookup]', e?.message || e); res.json({ title: null }); }
+});
+
 module.exports = router;

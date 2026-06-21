@@ -31,7 +31,7 @@ app.use(helmet({
       'script-src': ["'self'", "'unsafe-inline'", 'https://www.youtube.com'], // YT IFrame API (embed-blocked detection)
       'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       'font-src': ["'self'", 'https://fonts.gstatic.com'],
-      'img-src': ["'self'", 'data:', 'blob:', 'https://i.ytimg.com', 'https://img.youtube.com'],
+      'img-src': ["'self'", 'data:', 'blob:', 'https://i.ytimg.com', 'https://img.youtube.com', 'https://*.mzstatic.com'],
       'connect-src': ["'self'"],
       'frame-src': ['https://www.youtube-nocookie.com', 'https://www.youtube.com', 'https://open.spotify.com', 'https://embed.music.apple.com'],
       'frame-ancestors': ["'none'"],
