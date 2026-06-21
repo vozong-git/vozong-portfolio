@@ -110,13 +110,12 @@
         <div id="ytPreview" hidden class="mt-2"></div>
 
         <div class="flex items-center justify-between gap-2 mt-4">
-          <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Release Links (Spotify / Apple Music)</label>
+          <label class="font-metadata-sm text-metadata-sm text-on-surface-variant">Apple Music Link (optional)</label>
           <button type="button" id="relFindBtn" class="font-label-caps text-[10px] px-2 py-1 rounded border border-outline-variant text-on-surface-variant hover:border-primary-fixed-dim hover:text-primary-fixed-dim transition-colors flex items-center gap-1 shrink-0">
-            <span class="material-symbols-outlined text-[14px]">travel_explore</span> <span id="relFindLabel">릴리즈 링크 자동 찾기</span>
+            <span class="material-symbols-outlined text-[14px]">travel_explore</span> <span id="relFindLabel">Apple Music 자동 찾기</span>
           </button>
         </div>
-        <input id="f_spotify" placeholder="https://open.spotify.com/track/…  or  /album/…" class="w-full mt-1 mb-2 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
-        <input id="f_apple" placeholder="https://music.apple.com/…" class="w-full bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
+        <input id="f_apple" placeholder="https://music.apple.com/…" class="w-full mt-1 bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-on-surface placeholder:text-outline focus:border-primary-fixed-dim focus:ring-0"/>
       </section>
     </div>
 
@@ -295,7 +294,6 @@
       $('f_specs').value = p.technical_specs || '';
       $('f_desc').value = p.description || '';
       $('f_youtube').value = p.youtube_url || '';
-      $('f_spotify').value = p.spotify_url || '';
       $('f_apple').value = p.apple_url || '';
       $('f_status').value = p.status || 'draft';
       $('f_custom_cat').value = p.custom_category || '';
@@ -418,8 +416,8 @@
     finally { btn.disabled = false; btn.classList.remove('opacity-60'); $('ytFindLabel').textContent = '영상 자동 찾기'; }
   });
 
-  // auto-find Spotify + Apple Music links for "artist title" (fills only empty
-  // fields so it never clobbers a link you pasted/corrected by hand)
+  // auto-find an Apple Music link for "artist title" (fills only when empty, so
+  // it never clobbers a link you pasted/corrected by hand)
   $('relFindBtn').addEventListener('click', async () => {
     const title = $('f_title').value.trim();
     const q = [$('f_client').value.trim(), title].filter(Boolean).join(' ').trim();
@@ -428,18 +426,11 @@
     $('relFindLabel').textContent = '찾는 중…';
     try {
       const r = await SN.api('GET', `/api/releases/resolve?q=${encodeURIComponent(q)}`);
-      const got = [];
-      if (r.spotify && !$('f_spotify').value.trim()) { $('f_spotify').value = r.spotify; got.push('Spotify'); }
-      if (r.apple && !$('f_apple').value.trim()) { $('f_apple').value = r.apple; got.push('Apple'); }
-      if (got.length) SN.toast(`찾음: ${got.join(', ')} — 맞는지 확인 후 저장`);
-      else if (!r.spotify && !r.apple) SN.toast('릴리즈를 찾지 못했습니다', 'err');
-      else SN.toast('이미 입력된 링크는 유지했습니다');
-      // explain why Spotify came back empty (when it wasn't a plain no-match)
-      if (!r.spotify && r.spotifyConfigured === false) SN.toast('서버에 SPOTIFY_CLIENT_ID/SECRET 미설정 (Apple만 동작)', 'err');
-      else if (!r.spotify && r.spotifyError === 'premium_required') SN.toast('Spotify 검색은 앱 소유자 Premium 필요 — 링크는 직접 붙여넣으면 임베드됩니다', 'err');
-      else if (!r.spotify && r.spotifyError) SN.toast('Spotify 검색 오류 — 링크는 직접 붙여넣어도 됩니다', 'err');
+      if (r.apple && !$('f_apple').value.trim()) { $('f_apple').value = r.apple; SN.toast('Apple Music 찾음 — 맞는지 확인 후 저장'); }
+      else if (r.apple) SN.toast('이미 입력된 링크는 유지했습니다');
+      else SN.toast('Apple Music에서 찾지 못했습니다', 'err');
     } catch (e) { SN.toast(e.message, 'err'); }
-    finally { btn.disabled = false; btn.classList.remove('opacity-60'); $('relFindLabel').textContent = '릴리즈 링크 자동 찾기'; }
+    finally { btn.disabled = false; btn.classList.remove('opacity-60'); $('relFindLabel').textContent = 'Apple Music 자동 찾기'; }
   });
 
   // ── submit ──
@@ -466,7 +457,6 @@
       technical_specs: $('f_specs').value.trim(),
       description: $('f_desc').value.trim(),
       youtube_url: $('f_youtube').value.trim(),
-      spotify_url: $('f_spotify').value.trim(),
       apple_url: $('f_apple').value.trim(),
       status: $('f_status').value,
     };

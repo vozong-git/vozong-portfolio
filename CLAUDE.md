@@ -27,7 +27,7 @@ node --check server.js # 문법 체크
 | `DRIVE_AUDIO_FOLDER` | 기본 `portfolio_audio` |
 | `MAX_UPLOAD_MB` | 기본 100 |
 | `YOUTUBE_API_KEY` | (선택) YouTube Data API v3 키. 상세페이지 "아티스트 곡명"→실제 영상 watch 링크 해석용. 없으면 검색 링크 폴백 |
-| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | (선택) 무료 Spotify 개발자 앱. 어드민 폼 "릴리즈 링크 자동 찾기"의 Spotify 검색용. 없으면 Apple Music(iTunes Search, 키 불필요)만 동작 |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | (현재 미사용·예약) Spotify 자동찾기는 앱 소유자 Premium 필요 제약으로 제거됨. spotify_url 컬럼·임베드·검증은 유지(수동 입력/추후 재도입용) |
 | `BACKUP_TOKEN` / `ALERT_WEBHOOK` | cron 백업 트리거 공유 토큰 / (선택) 백업 실패 알림 Slack·Discord 웹훅 |
 | `DB_PATH` | SQLite 파일 경로 |
 
@@ -51,7 +51,7 @@ src/
     backup.js      POST /api/backup(admin 또는 X-Backup-Token, 상수시간 비교) → SQLite .backup() → Drive portfolio_backup
     youtube.js     GET /api/youtube/resolve — projectId(공개=캐시 온리, API 호출 안 함) / q=(관리자=API 검색). "아티스트 곡명"→영상 id. yt_cache: 양수 영구 캐시, 빈 결과(매칭 실패)는 7일 TTL 후 재해석. search.list=100 units(일 10k 한도)라 공개 경로는 할당량 미소비
     theme.js       GET /api/theme(공개: 현재+목록) / PUT(admin: 프리셋 변경). 별도로 server.js가 `/theme.js`(head 동기 로더)를 admin_state.theme에서 서빙
-    releases.js    GET /api/releases/resolve?q=(admin) — "아티스트 제목"→Spotify(client-credentials)+Apple(iTunes Search) 링크. 폼 자동찾기 전용. 공개 상세는 저장된 projects.spotify_url/apple_url을 임베드(API 호출 없음). CSP frame-src에 open.spotify.com·embed.music.apple.com 허용
+    releases.js    GET /api/releases/resolve?q=(admin) — "아티스트 제목"→Apple Music(iTunes Search, 키 불필요) 링크. 폼 자동찾기 전용. 공개 상세는 저장된 projects.apple_url/spotify_url을 임베드(API 호출 없음). CSP frame-src에 open.spotify.com·embed.music.apple.com 허용. (Spotify 자동찾기는 Premium 제약으로 제거)
 scripts/
   backup.js        cron용 standalone 백업 러너
   trigger-backup.js Render cron이 web /api/backup을 HTTP 트리거(디스크 공유 불가). 실패 시 ALERT_WEBHOOK
@@ -59,7 +59,7 @@ scripts/
 public/            정적 프론트(Tailwind CLI 빌드, Play-CDN 제거)
   index.html       공개 포트폴리오 (?project=<id> 딥링크로 상세 직접 열기)
   login.html       구글 로그인
-  admin.html       대시보드(관리 테이블, publish 토글, 필터 sessionStorage 유지, 제목→상세 미리보기, 태그·유튜브 아이콘)
+  admin.html       대시보드(관리 테이블, publish 토글, 필터 sessionStorage 유지, 제목→상세 미리보기, 태그·유튜브(빨강)·애플뮤직(핑크) 아이콘, 통계 스트립). 미디어 필터=단일버튼 3상태 토글(ALL→있음→없음): YouTube `?youtube=with|without`, Apple `?apple=with|without`
   project-form.html 등록/수정 (?id= 수정모드). Save/Save&Next/Discard/Discard&Next, 날짜 자동포맷, YouTube 자동찾기, 데스크탑 sticky 액션패널
   contact.html / contact-form.html
   assets/{app.css(빌드 산출물·gitignore), common.js}

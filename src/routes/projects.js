@@ -78,6 +78,7 @@ function serializeListRow(p) {
     status: p.status,
     created_at: p.created_at,
     youtube_url: p.youtube_url || null,
+    apple_url: p.apple_url || null,
     cover_url: p.cover_asset_id ? `/api/assets/${p.cover_asset_id}/raw` : null,
   };
 }
@@ -159,13 +160,18 @@ router.get('/', (req, res) => {
   } else if (isAdmin && req.query.youtube === 'without') {
     where.push("(youtube_url IS NULL OR TRIM(youtube_url) = '')");
   }
+  if (isAdmin && req.query.apple === 'with') {
+    where.push("apple_url IS NOT NULL AND TRIM(apple_url) != ''");
+  } else if (isAdmin && req.query.apple === 'without') {
+    where.push("(apple_url IS NULL OR TRIM(apple_url) = '')");
+  }
   if (req.query.q) {
     where.push('(title LIKE ? OR client_name LIKE ? OR description LIKE ?)');
     const like = `%${req.query.q}%`;
     params.push(like, like, like);
   }
   const sql = `SELECT id, title, client_name, completion_date, category, custom_category,
-                      tags, status, created_at, youtube_url,
+                      tags, status, created_at, youtube_url, apple_url,
                       (SELECT a.id FROM assets a
                          WHERE a.project_id = projects.id AND a.kind = 'image'
                          ORDER BY a.is_cover DESC, a.id ASC LIMIT 1) AS cover_asset_id
