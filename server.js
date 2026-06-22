@@ -33,6 +33,7 @@ app.use(helmet({
       'font-src': ["'self'", 'https://fonts.gstatic.com'],
       'img-src': ["'self'", 'data:', 'blob:', 'https://i.ytimg.com', 'https://img.youtube.com', 'https://*.mzstatic.com'],
       'connect-src': ["'self'"],
+      'media-src': ["'self'", 'https://*.mzstatic.com', 'https://*.itunes.apple.com'],
       'frame-src': ['https://www.youtube-nocookie.com', 'https://www.youtube.com', 'https://open.spotify.com', 'https://embed.music.apple.com'],
       'frame-ancestors': ["'none'"],
     },

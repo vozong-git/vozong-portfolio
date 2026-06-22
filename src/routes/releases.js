@@ -42,24 +42,32 @@ function appleId(url) {
   return album ? album[1] : null;
 }
 
-// GET /api/releases/apple-preview?url=...  (admin) — cover/artist/title for an
-// Apple Music link via the free iTunes Lookup API (no key).
-router.get('/apple-preview', requireAdmin, async (req, res) => {
+// GET /api/releases/apple-preview?url=...  (public) — cover/artist/title +
+// a 30s preview audio URL for an Apple Music link via the free iTunes Lookup
+// API (no key). The editor uses the artwork to confirm a match; the public
+// detail uses `preview` to play inline without showing the artwork. Cached
+// in-memory so repeated views don't re-hit iTunes.
+const appleCache = new Map();
+router.get('/apple-preview', async (req, res) => {
   const url = String(req.query.url || '').trim();
   const id = appleId(url);
   if (!id) return res.status(400).json({ error: 'bad_url' });
+  if (appleCache.has(id)) return res.json(appleCache.get(id));
   try {
     const r = await fetch(`https://itunes.apple.com/lookup?id=${id}`);
     if (!r.ok) { console.error('[apple lookup]', r.status); return res.json({ title: null }); }
     const d = await r.json();
     const t = d.results && d.results[0];
-    if (!t) return res.json({ title: null });
-    res.json({
+    const out = t ? {
       title: t.trackName || t.collectionName || null,
       artist: t.artistName || null,
       artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '300x300') : null,
+      preview: t.previewUrl || null,
       url: t.trackViewUrl || t.collectionViewUrl || url,
-    });
+    } : { title: null };
+    if (appleCache.size > 500) appleCache.clear();
+    appleCache.set(id, out);
+    res.json(out);
   } catch (e) { console.error('[apple lookup]', e?.message || e); res.json({ title: null }); }
 });
 

@@ -294,6 +294,7 @@
       // Saved video → watch the embed and reveal the fallback only if it's blocked.
       if (!ytId(p.youtube_url)) enhanceYouTubeLink(p.id);
       else watchEmbed();
+      if (p.apple_url) enhanceApple(p.apple_url);
     } catch (e) {
       const err = `<p class="font-metadata-sm text-metadata-sm text-error">${SN.escape(e.message)}</p>`;
       if (detailMode === 'modal') detailModalBody.innerHTML = err; else area.innerHTML = err;
@@ -332,6 +333,21 @@
         if (icon) icon.textContent = 'play_circle';
       }
     } catch (_) { /* keep the search fallback */ }
+  }
+
+  // Upgrade the Apple Music link into a cover-less 30s preview player (iTunes
+  // previewUrl) + a "full listen" link. Falls back to the link on no preview.
+  async function enhanceApple(url) {
+    const box = document.getElementById('appleRelease');
+    if (!box) return;
+    try {
+      const r = await SN.api('GET', `/api/releases/apple-preview?url=${encodeURIComponent(url)}`);
+      const full = `<a href="${SN.escape(r.url || url)}" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 font-metadata-sm text-metadata-sm text-on-surface-variant hover:text-primary-fixed-dim transition-colors"><span class="material-symbols-outlined text-base" style="color:#FA243C">music_note</span> Apple Music에서 전체 듣기 <span class="material-symbols-outlined text-base">open_in_new</span></a>`;
+      box.innerHTML = r.preview
+        ? `<p class="font-metadata-sm text-[11px] text-outline tracking-wide">APPLE MUSIC · 30초 미리듣기</p>
+           <audio controls preload="none" src="${r.preview}" class="w-full"></audio>${full}`
+        : full;
+    } catch (_) { /* keep the fallback button already in the box */ }
   }
 
   // Load the YouTube IFrame API once. Some performance videos disable embedding;
@@ -385,10 +401,12 @@
   function detailView(p) {
     const images = (p.assets || []).filter(a => a.kind === 'image');
     const audios = (p.assets || []).filter(a => a.kind === 'audio');
-    const relLinks = [];
-    if (p.apple_url) relLinks.push(releaseLink(p.apple_url, 'Apple Music에서 듣기', '#FA243C'));
-    if (p.spotify_url) relLinks.push(releaseLink(p.spotify_url, 'Spotify에서 듣기', '#1DB954'));
-    const releaseBlock = relLinks.length ? `<div class="flex flex-col gap-2">${relLinks.join('')}</div>` : '';
+    const relParts = [];
+    // Apple: a placeholder that openDetail() upgrades to a cover-less 30s preview
+    // player (the link is the fallback if there's no preview / fetch fails).
+    if (p.apple_url) relParts.push(`<div id="appleRelease" class="flex flex-col gap-2">${releaseLink(p.apple_url, 'Apple Music에서 듣기', '#FA243C')}</div>`);
+    if (p.spotify_url) relParts.push(releaseLink(p.spotify_url, 'Spotify에서 듣기', '#1DB954'));
+    const releaseBlock = relParts.length ? `<div class="flex flex-col gap-2">${relParts.join('')}</div>` : '';
     const yt = ytId(p.youtube_url);
     // No saved video? Offer a YouTube search for "artist title" (opens in a new
     // tab — YouTube blocks embedding its search results in an iframe).
