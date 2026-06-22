@@ -336,17 +336,16 @@
   }
 
   // Upgrade the Apple Music link into a cover-less 30s preview player (iTunes
-  // previewUrl) + a "full listen" link. Falls back to the link on no preview.
+  // previewUrl). If there's no preview, the fallback link already in the box stays.
   async function enhanceApple(url) {
     const box = document.getElementById('appleRelease');
     if (!box) return;
     try {
       const r = await SN.api('GET', `/api/releases/apple-preview?url=${encodeURIComponent(url)}`);
-      const full = `<a href="${SN.escape(r.url || url)}" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 font-metadata-sm text-metadata-sm text-on-surface-variant hover:text-primary-fixed-dim transition-colors"><span class="material-symbols-outlined text-base" style="color:#FA243C">music_note</span> Apple Music에서 전체 듣기 <span class="material-symbols-outlined text-base">open_in_new</span></a>`;
-      box.innerHTML = r.preview
-        ? `<p class="font-metadata-sm text-[11px] text-outline tracking-wide">APPLE MUSIC · 30초 미리듣기</p>
-           <audio controls preload="none" src="${r.preview}" class="w-full"></audio>${full}`
-        : full;
+      if (r.preview) {
+        box.innerHTML = `<p class="font-metadata-sm text-[11px] text-outline tracking-wide">APPLE MUSIC · 30초 미리듣기</p>
+           <audio controls preload="none" src="${r.preview}" class="w-full"></audio>`;
+      }
     } catch (_) { /* keep the fallback button already in the box */ }
   }
 
