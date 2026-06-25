@@ -287,6 +287,13 @@
     pendingFiles.splice(+b.dataset.rm, 1); renderFileList();
   });
 
+  // Preview caches — declared up here (not beside their render fns below) so the
+  // edit-mode prefill can call renderYtPreview/renderApplePreview before those
+  // const declarations run. Otherwise the calls hit the temporal dead zone and
+  // throw, leaving YouTube stuck on "제목 불러오는 중…" and Apple with no preview.
+  const ytTitleCache = {};
+  const appleCache = {};
+
   // ── edit mode: prefill ──
   if (editId) {
     $('pageTitle').textContent = 'Edit Project';
@@ -418,7 +425,6 @@
     const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
     return m ? m[1] : null;
   }
-  const ytTitleCache = {};
   async function renderYtPreview() {
     const id = ytId($('f_youtube').value.trim());
     const box = $('ytPreview');
@@ -446,7 +452,6 @@
   $('f_youtube').addEventListener('input', renderYtPreview);
 
   // Apple Music: cover + artist + title preview (iTunes Lookup, cached per url)
-  const appleCache = {};
   async function renderApplePreview() {
     const url = $('f_apple').value.trim();
     const box = $('applePreview');
