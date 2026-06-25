@@ -13,15 +13,22 @@ const router = express.Router();
 // public embed remain, so Spotify links can still be pasted by hand and a
 // resolver can be re-added later.
 
-// Apple Music via the free iTunes Search API (no key).
-async function appleSearch(q) {
+// Apple Music via the free iTunes Search API (no key). Tries one store at a time.
+async function appleSearchStore(q, country) {
   try {
-    const r = await fetch(`https://itunes.apple.com/search?media=music&entity=song&limit=1&term=${encodeURIComponent(q)}`);
-    if (!r.ok) { console.error('[apple search]', r.status); return null; }
+    const r = await fetch(`https://itunes.apple.com/search?media=music&entity=song&limit=1&country=${country}&term=${encodeURIComponent(q)}`);
+    if (!r.ok) { console.error('[apple search]', country, r.status); return null; }
     const d = await r.json();
     const t = d.results && d.results[0];
     return (t && (t.trackViewUrl || t.collectionViewUrl)) || null;
-  } catch (e) { console.error('[apple search]', e?.message || e); return null; }
+  } catch (e) { console.error('[apple search]', country, e?.message || e); return null; }
+}
+
+// This is a Korean studio's portfolio, so domestic releases are missing from the
+// default US store (e.g. "검정치마 안녕" → 0 hits in US, 1 in KR). Search the KR
+// store first, then fall back to US for international artists.
+async function appleSearch(q) {
+  return (await appleSearchStore(q, 'KR')) || (await appleSearchStore(q, 'US'));
 }
 
 // GET /api/releases/resolve?q=...  (admin)
