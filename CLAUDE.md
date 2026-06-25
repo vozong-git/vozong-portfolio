@@ -51,7 +51,7 @@ src/
     backup.js      POST /api/backup(admin 또는 X-Backup-Token, 상수시간 비교) → SQLite .backup() → Drive portfolio_backup
     youtube.js     GET /api/youtube/resolve — projectId(공개=캐시 온리, API 호출 안 함) / q=(관리자=API 검색). "아티스트 곡명"→영상 id. yt_cache: 양수 영구 캐시, 빈 결과(매칭 실패)는 7일 TTL 후 재해석. search.list=100 units(일 10k 한도)라 공개 경로는 할당량 미소비. + /oembed?v=(공개) 영상 제목(oEmbed, 키·쿼터 불필요)
     theme.js       GET /api/theme(공개: 현재+목록) / PUT(admin: 프리셋 변경). 별도로 server.js가 `/theme.js`(head 동기 로더)를 admin_state.theme에서 서빙
-    releases.js    GET /api/releases/resolve?q=(admin) — "아티스트 제목"→Apple Music(iTunes Search, 키 불필요) 링크. + /apple-preview?url=(공개, 메모리캐시)로 커버/아티스트/곡명/30초 previewUrl(iTunes Lookup). 어드민 폼은 커버 미리보기, 공개 상세는 커버 없이 `<audio>` 미리듣기. (Apple/Spotify 임베드는 커버 중복으로 제거 → 미리듣기+링크). CSP media-src에 *.mzstatic.com·*.itunes.apple.com 허용 공개 상세는 저장된 projects.apple_url/spotify_url을 임베드(API 호출 없음). CSP frame-src에 open.spotify.com·embed.music.apple.com 허용. (Spotify 자동찾기는 Premium 제약으로 제거)
+    releases.js    GET /api/releases/resolve?q=(admin) — "아티스트 제목"→Apple Music(iTunes Search, 키 불필요) 링크. **KR 스토어 우선 검색 → 0건이면 US 폴백**(국내 발매곡이 기본 US 스토어에서 누락되던 문제 해결, 해외곡은 KR 스토어도 보유). + /apple-preview?url=(공개, 메모리캐시)로 커버/아티스트/곡명/30초 previewUrl(iTunes Lookup). 어드민 폼은 커버 미리보기, 공개 상세는 커버 없이 `<audio>` 미리듣기. (Apple/Spotify 임베드는 커버 중복으로 제거 → 미리듣기+링크). CSP media-src에 *.mzstatic.com·*.itunes.apple.com 허용 공개 상세는 저장된 projects.apple_url/spotify_url을 임베드(API 호출 없음). CSP frame-src에 open.spotify.com·embed.music.apple.com 허용. (Spotify 자동찾기는 Premium 제약으로 제거)
 scripts/
   backup.js        cron용 standalone 백업 러너
   trigger-backup.js Render cron이 web /api/backup을 HTTP 트리거(디스크 공유 불가). 실패 시 ALERT_WEBHOOK

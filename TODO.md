@@ -4,7 +4,14 @@
 > "TODO.md 보고 이어서 하자" 또는 "1순위(썸네일 캐시)부터 하자"라고 하면 됩니다.
 > 진행 이력은 `git log --oneline`으로 확인.
 
-마지막 작업일: 2026-06-20 · 프로덕션: <https://vozong-portfolio.onrender.com> (Render, autoDeploy 정상 — `git push`만 하면 ~1분 내 배포) · 운영 프로젝트 ~436개
+마지막 작업일: 2026-06-26 · 프로덕션: <https://vozong-portfolio.onrender.com> (Render, autoDeploy 정상 — `git push`만 하면 ~1분 내 배포) · 운영 프로젝트 ~436개
+
+---
+
+## ✅ 2026-06-26 — Apple Music 자동찾기 + 수정폼 미리보기 버그픽스
+- **Apple Music 자동찾기 0건 문제** (`45b4caa`): `iTunes Search`가 기본 **US 스토어**라 국내 발매곡(예: "검정치마 안녕" US=0/KR=1)이 누락돼 "찾지 못했습니다"만 떴음. `src/routes/releases.js`의 `appleSearch`를 **KR 스토어 우선 → 0건이면 US 폴백**으로 변경. KR 스토어가 해외 카탈로그도 보유해 해외곡(IU·Daft Punk)도 그대로 해석됨. 양쪽 0건인 곡은 실제 Apple 미수록(정상).
+- **수정폼 진입 시 미리보기 멈춤/누락 (TDZ)** (`2569994`): 편집 모드 프리필이 `renderYtPreview/renderApplePreview`를 호출하는데, 두 함수가 쓰는 `ytTitleCache`/`appleCache` **const 선언이 호출 지점보다 아래**에 있어 temporal dead zone `ReferenceError` 발생 → YouTube는 "제목 불러오는 중…"에서 멈추고(박스만 그려지고 캐시 접근에서 죽음) Apple은 박스 자체가 안 뜸. 타이핑 시엔 스크립트가 다 실행된 뒤라 정상이었음. 캐시 선언 2개를 프리필 블록 위로 호이스팅. (`public/project-form.html`)
+- 검증: iTunes API 직접/로컬 end-to-end resolve(KR곡·해외곡·미수록곡), 프로덕션 oembed·apple-preview 200, 인라인 JS `node --check`, 캐시 선언 순서 확인.
 
 ---
 
