@@ -219,6 +219,13 @@ function saveAdminIdentity({ email, name, picture, refreshToken }) {
   }
 }
 
+/** Drop a refresh token Google no longer accepts. Only re-consent can recover,
+ *  so keeping it around just makes `driveLinked` lie. */
+function clearRefreshToken() {
+  open();
+  db.prepare("UPDATE admin_state SET refresh_token = NULL, updated_at = datetime('now') WHERE id = 1").run();
+}
+
 function setFolderId(kind, folderId) {
   open();
   const col = kind === 'audio' ? 'audio_folder_id' : 'image_folder_id';
@@ -284,7 +291,7 @@ function putYtCache(query, videoId) {
 module.exports = {
   open, init,
   get db() { return open(); },
-  getAdminState, saveAdminIdentity, setFolderId,
+  getAdminState, saveAdminIdentity, clearRefreshToken, setFolderId,
   getContact, saveContact,
   getTheme, setTheme,
   getYtCache, putYtCache,

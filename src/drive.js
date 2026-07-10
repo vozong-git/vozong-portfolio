@@ -31,6 +31,40 @@ function driveClient() {
   return google.drive({ version: 'v3', auth: oauthClient(true) });
 }
 
+function notLinked(cause) {
+  const err = new Error('DRIVE_NOT_LINKED');
+  err.code = 'DRIVE_NOT_LINKED';
+  err.cause = cause;
+  return err;
+}
+
+/** True when Google rejects the stored refresh token itself — the grant is gone
+ *  (revoked/expired), the consent is missing a scope, or the client credentials
+ *  no longer match. All three need a fresh admin login; nothing else does.
+ *  Deliberately narrow: a transient 5xx or a network blip must NOT match. */
+function isAuthFailure(e) {
+  const oauthError = e?.response?.data?.error;      // token endpoint: invalid_grant / invalid_client
+  if (oauthError === 'invalid_grant' || oauthError === 'invalid_client') return true;
+  if (e?.message === 'invalid_grant' || e?.message === 'invalid_client') return true;
+  // Drive API rejects an access token minted without drive.file
+  if (/insufficient authentication scopes/i.test(e?.message || '')) return true;
+  const reasons = (e?.errors || []).map((x) => x.reason);
+  return reasons.includes('insufficientPermissions') || reasons.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT');
+}
+
+/** Run a Drive call, converting an unusable grant into DRIVE_NOT_LINKED. The
+ *  dead token is dropped so `driveLinked` stops claiming the Drive is connected
+ *  and the admin sees that a re-login is needed. */
+async function callDrive(fn) {
+  try {
+    return await fn();
+  } catch (e) {
+    if (e.code === 'DRIVE_NOT_LINKED' || !isAuthFailure(e)) throw e;
+    db.clearRefreshToken();
+    throw notLinked(e);
+  }
+}
+
 /** Build the Google consent URL. */
 function authUrl(state) {
   return oauthClient().generateAuthUrl({
@@ -106,47 +140,57 @@ async function ensureFolder(kind /* 'image' | 'audio' */) {
 /** Stream a file from disk to the appropriate Drive folder. Returns {id, name}.
  *  Streaming (vs. buffering in memory) keeps RAM flat regardless of file size. */
 async function uploadFile({ filePath, name, mimeType, kind }) {
-  const folderId = await ensureFolder(kind);
-  const drive = driveClient();
-  const res = await drive.files.create({
-    requestBody: { name, parents: [folderId] },
-    media: { mimeType, body: fs.createReadStream(filePath) },
-    fields: 'id,name',
+  return callDrive(async () => {
+    const folderId = await ensureFolder(kind);
+    const drive = driveClient();
+    const res = await drive.files.create({
+      requestBody: { name, parents: [folderId] },
+      media: { mimeType, body: fs.createReadStream(filePath) },
+      fields: 'id,name',
+    });
+    return res.data;
   });
-  return res.data;
 }
 
 /** Stream a Drive file's bytes (for the image proxy). */
 async function getFileStream(fileId) {
-  const drive = driveClient();
-  const meta = await drive.files.get({ fileId, fields: 'id,name,mimeType,size' });
-  const media = await drive.files.get(
-    { fileId, alt: 'media' },
-    { responseType: 'stream' }
-  );
-  return { stream: media.data, meta: meta.data };
+  return callDrive(async () => {
+    const drive = driveClient();
+    const meta = await drive.files.get({ fileId, fields: 'id,name,mimeType,size' });
+    const media = await drive.files.get(
+      { fileId, alt: 'media' },
+      { responseType: 'stream' }
+    );
+    return { stream: media.data, meta: meta.data };
+  });
 }
 
 /** Fetch a Drive-generated thumbnail (small JPEG) for an image file.
  *  Returns { buffer, contentType } or null if unavailable. Buffers (not a
  *  stream) so the caller can both cache the bytes and serve them. */
 async function getThumbnail(fileId, size) {
-  const client = oauthClient(true);
-  const drive = google.drive({ version: 'v3', auth: client });
-  const { data } = await drive.files.get({ fileId, fields: 'thumbnailLink' });
-  if (!data.thumbnailLink) return null;
-  // thumbnailLink ends with a size hint like "=s220"; bump it to the requested size
-  const url = data.thumbnailLink.replace(/=s\d+(-[a-z0-9]+)*$/i, `=s${size}`);
-  const { token } = await client.getAccessToken();
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  if (!res.ok) return null;
-  const buffer = Buffer.from(await res.arrayBuffer());
-  return { buffer, contentType: res.headers.get('content-type') || 'image/jpeg' };
+  return callDrive(async () => {
+    const client = oauthClient(true);
+    const drive = google.drive({ version: 'v3', auth: client });
+    const { data } = await drive.files.get({ fileId, fields: 'thumbnailLink' });
+    if (!data.thumbnailLink) return null;
+    // thumbnailLink ends with a size hint like "=s220"; bump it to the requested size
+    const url = data.thumbnailLink.replace(/=s\d+(-[a-z0-9]+)*$/i, `=s${size}`);
+    const { token } = await client.getAccessToken();
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return null;
+    const buffer = Buffer.from(await res.arrayBuffer());
+    return { buffer, contentType: res.headers.get('content-type') || 'image/jpeg' };
+  });
 }
 
 /** Upload a SQLite backup file to a `portfolio_backup` Drive folder, then
  *  prune older backups beyond `keep`. Returns the uploaded file metadata. */
 async function uploadBackup(filePath, name, keep = 14) {
+  return callDrive(() => uploadBackupToDrive(filePath, name, keep));
+}
+
+async function uploadBackupToDrive(filePath, name, keep) {
   const drive = driveClient();
   const folderName = 'portfolio_backup';
 
@@ -201,4 +245,5 @@ async function deleteFile(fileId) {
 
 module.exports = {
   authUrl, exchangeCode, ensureFolder, uploadFile, getFileStream, getThumbnail, uploadBackup, deleteFile, oauthClient,
+  isAuthFailure, // exported so the token-dropping guard can be tested directly
 };
