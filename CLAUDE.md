@@ -104,6 +104,5 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS: inner-glow/glow-bl
 
 1. ~~Tailwind Play-CDN → 빌드 스텝 전환~~ ✅ 완료 (Tailwind CLI v3, `npm run build:css`, prestart 자동 빌드).
 2. ~~실제 OAuth 클라이언트로 토큰 교환 + 드라이브 업로드 실동작 확인.~~ ✅ 완료 (2026-06-16, end-to-end 검증).
-3. 오디오 업로드(`portfolio_audio`) 프론트 UI 마무리 — 백엔드는 이미 지원.
-4. ~~배포~~ ✅ 완료 (2026-06-16). **Render Starter+Disk(Singapore)** 운영: **https://vozong-portfolio.onrender.com** (GitHub: vozong-git/vozong-portfolio, main 브랜치, Blueprint 자동배포). `config.js`가 `RENDER_EXTERNAL_URL`→`BASE_URL` 자동 도출, `.node-version`=22. **안정화**: `app.listen('0.0.0.0')`로 포트 즉시 감지(무중단 재배포), 전역 에러 핸들러, 업로드 디스크 스트리밍(OOM 방지), `MAX_UPLOAD_MB`=100. ⚠️ Render 서비스 slug(=URL)는 생성 후 불변 — 바꾸려면 서비스 재생성 필요.
-5. (선택) 이미지 썸네일 생성으로 raw 프록시 대역폭 절감, 정렬·페이지네이션, SEO 메타.
+3. ~~배포~~ ✅ 완료 (2026-06-16). **Render Starter+Disk(Singapore)** 운영: **https://vozong-portfolio.onrender.com** (GitHub: vozong-git/vozong-portfolio, main 브랜치, Blueprint 자동배포). `config.js`가 `RENDER_EXTERNAL_URL`→`BASE_URL` 자동 도출, `.node-version`=22. **안정화**: `app.listen('0.0.0.0')`로 포트 즉시 감지(무중단 재배포), 전역 에러 핸들러, 업로드 디스크 스트리밍(OOM 방지), `MAX_UPLOAD_MB`=100. ⚠️ Render 서비스 slug(=URL)는 생성 후 불변 — 바꾸려면 서비스 재생성 필요.
+4. (선택) 이미지 썸네일 생성으로 raw 프록시 대역폭 절감, 정렬·페이지네이션, SEO 메타.

@@ -115,7 +115,6 @@
 
 ## 🟢 낮음 / 보류
 - ~~README 일부 오래된 설명(`timeline`, 과거 카테고리/디자인 문구 등) 정리.~~ ✅ (2026-06-20) 유령 `timeline` 라우트 제거, API 표에 contact/backup/youtube/tags 추가, 카테고리 `master` 제거, MAX_UPLOAD 500→100, 디자인 섹션을 라이트 테마(크림+코랄)로 교체. CLAUDE.md PORT/BASE_URL도 3000→8080 정정. 유지보수 판단은 `CLAUDE.md`, 이 TODO, `MAINTENANCE.md`를 우선.
-- 오디오 업로드 UI — 저작권상 YouTube 링크 위주라 보류. 활성화하려면 Render env `DRIVE_AUDIO_FOLDER=portfolio_audio` + 폼 음원 미리듣기.
 - 모니터링/로깅(에러 추적), 이미지 EXIF 회전 등.
 
 ---
