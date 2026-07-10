@@ -78,6 +78,8 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS: inner-glow/glow-bl
 - `drive.js`는 refresh token 없으면 `DRIVE_NOT_LINKED` throw → upload 라우트가 409 `drive_not_linked`로 변환.
 - 업로드는 multer 2.x, **디스크 스토리지**(`os.tmpdir()`, 요청 후 임시파일 정리), image/audio MIME 화이트리스트. `drive.uploadFile`이 `fs.createReadStream`으로 **스트리밍 업로드**(메모리 OOM 방지 — 과거 memoryStorage였음).
 - 이미지 안 보이면 대개 raw 프록시 또는 드라이브 미연결 문제. 공개 URL 아님을 기억.
+- **OAuth 동의화면은 "프로덕션" 유지 — "테스트로 돌아가기" 금지**: 테스트 상태에서는 Google이 refresh token을 발급 7일 후 만료시킨다. 이 앱은 관리자 로그인 토큰을 그대로 Drive 접근에 재사용하므로, 토큰이 죽으면 백업 크론뿐 아니라 **공개 사이트 이미지가 전부 502**로 죽는다. 스코프가 전부 비민감(`drive.file`·`openid`·`userinfo.*`)이라 프로덕션 게시에 Google 검증 심사는 불필요. 재로그인 시 동의화면의 Drive 체크박스를 반드시 켤 것(끄면 `Request had insufficient authentication scopes.`).
+- Drive 장애 진단은 **Render 웹 서비스 로그**의 `[asset stream]` / `[backup]` 줄부터 본다(크론 로그엔 원인이 안 찍힘). `invalid_grant`면 토큰이 죽은 것이고 복구는 관리자 재로그인뿐. 이때 Google이 거부한 토큰은 `drive.js`의 `isAuthFailure()`가 잡아 폐기하므로 `driveLinked`가 `false`로 떨어지고 라우트는 409 `drive_not_linked`를 반환한다.
 - 비밀값(`.env`)·`node_modules`·`data/*.db`는 커밋/패키지 제외.
 
 ## 디자인 토큰 (따뜻한 라이트)
@@ -97,6 +99,8 @@ src/styles/app.css Tailwind 입력(@tailwind + 커스텀 CSS: inner-glow/glow-bl
 **검증 완료(실 자격증명, 2026-06-16)**: 실제 OAuth 토큰 교환·refresh token 암호화 저장(`driveLinked:true`), 이미지 업로드→Drive 적재→raw 프록시 스트리밍→삭제 end-to-end. (Safari는 localhost를 https로 강제 업그레이드하니 로그인은 Chrome/Firefox 권장.)
 
 **프로덕션 검증(2026-06-16)**: Render 운영 URL에서 OAuth 로그인·`driveLinked:true`·가용성 안정(무중단 재배포, `x-render-routing: no-server` 해소) 확인. 디스크 스트리밍 업로드는 로컬 실 Drive로 end-to-end 검증.
+
+**장애·복구(2026-07-10)**: 동의화면이 "테스트 중"이라 refresh token이 7일 만에 만료 → 07-09 오후부터 이미지 전부 502, 07-10 백업 크론 500. 동의화면을 프로덕션으로 게시 + 관리자 재로그인으로 복구. 복구 후 raw 200·`?thumb=` HIT·백업 크론 성공 확인. 당시 `driveLinked`가 죽은 토큰에도 `true`를 반환해 진단을 늦춘 문제는 `isAuthFailure()` 도입으로 해결(→ §코딩 컨벤션).
 
 ## TODO (우선순위)
 
